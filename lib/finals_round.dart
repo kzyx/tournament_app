@@ -20,18 +20,43 @@ class PlayoffsRound {
     required this.total,
   });
 
-  final List<Match> data;
-  final int total;
+  final List<Match> data; // retrieved from Json
+  final int total; // retrieved from Json
+  List<Series> series = []; // generated after Json retrieved
 
-  factory PlayoffsRound.fromJson(Map<String, dynamic> json) => PlayoffsRound(
-        data: List<Match>.from(json["data"].map((x) => Match.fromJson(x))),
-        total: json["total"],
-      );
+  factory PlayoffsRound.fromJson(Map<String, dynamic> json) {
+    PlayoffsRound playoffsRound = PlayoffsRound(
+      data: List<Match>.from(json["data"].map((x) => Match.fromJson(x))),
+      total: json["total"],
+    );
+    return playoffsRound;
+  }
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() =>
+      {
         "data": List<dynamic>.from(data.map((x) => x.toJson())),
         "total": total,
       };
+
+
+  /// This static create() function is needed because we need to do async calls
+  ///   to grab match data and generate
+  static Future<Series> create() async {
+    var component = Series(
+        topSeedTeamId: 0,
+        bottomSeedTeamId: 0,
+        topSeedScore: 0,
+        bottomSeedScore: 0,
+        topSeedDidWin: false);
+
+    // Do initialization that requires async
+    //await component._complexAsyncInit();
+
+
+
+    // Return the fully initialized object
+    return component;
+  }
 }
 
 // This is a class that is not a part of any API
@@ -50,23 +75,6 @@ class Series {
   int topSeedScore;
   int bottomSeedScore;
   bool topSeedDidWin; // if this var is false, that means the bottom seed won
-
-  /// This static create() function is needed because we need to do async calls
-  ///   to grab match data
-  static Future<Series> create() async {
-    var component = Series(
-        topSeedTeamId: 0,
-        bottomSeedTeamId: 0,
-        topSeedScore: 0,
-        bottomSeedScore: 0,
-        topSeedDidWin: false);
-
-    // Do initialization that requires async
-    //await component._complexAsyncInit();
-
-    // Return the fully initialized object
-    return component;
-  }
 }
 
 class Match {
@@ -98,7 +106,8 @@ class Match {
   final String seriesTitle;
   final int topSeedWins;
 
-  factory Match.fromJson(Map<String, dynamic> json) => Match(
+  factory Match.fromJson(Map<String, dynamic> json) =>
+      Match(
         id: json["id"],
         bottomSeedWins: json["bottomSeedWins"],
         gameId: json["gameId"],
@@ -113,7 +122,8 @@ class Match {
         topSeedWins: json["topSeedWins"],
       );
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() =>
+      {
         "id": id,
         "bottomSeedWins": bottomSeedWins,
         "gameId": gameId,
@@ -129,37 +139,6 @@ class Match {
       };
 }
 
-class Team {
-  Team({
-    required this.name,
-    required this.abbreviation,
-    required this.conference,
-    required this.id,
-    required this.franchiseId,
-  });
-
-  final int id;
-  final String name;
-  final String abbreviation;
-  final String conference;
-  final int franchiseId;
-
-  factory Team.fromJson(Map<String, dynamic> json) => Team(
-        id: json["id"],
-        name: json["name"],
-        abbreviation: json["abbreviation"],
-        conference: json["conference"]["name"],
-        franchiseId: json["franchiseId"],
-      );
-
-  Map<String, dynamic> toJson() => {
-        "id": id,
-        "name": name,
-        "abbreviation": abbreviation,
-        "conference": conference,
-        "franchiseId": franchiseId,
-      };
-}
 
 /// Returns a string representing the name of the given [round].
 ///

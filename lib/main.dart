@@ -3,7 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:collection';
 import 'dart:convert';
-import 'finals_round.dart';
+// import 'finals_round.dart';
+import 'playoff_series.dart';
 
 class Tournament extends StatefulWidget {
   // This class is the configuration for the state.
@@ -113,21 +114,19 @@ Future<List<Team>> fetchTeamIDs() async {
   }
 }
 
-Future<List<Team>> fetchPlayoffRound() async {
+
+Future<Playoffs> fetchPlayoffs(int season) async {
+  const baseUrl = 'https://statsapi.web.nhl.com/api/v1/tournaments/playoffs';
+  const additionalUrl = '?expand=round.series,schedule.game.seriesSummary';
   final response =
-      await http.get(Uri.parse('https://statsapi.web.nhl.com/api/v1/teams'));
+      await http.get(Uri.parse(baseUrl + additionalUrl + '&season=$season'));
 
   if (response.statusCode == 200) {
     // If the server did return a 200 OK response, then parse the JSON.
     Map<String, dynamic> jsonMap = jsonDecode(response.body);
-    List<dynamic> jsonTeamList = jsonMap["teams"];
-    List<Team> outputTeams = [];
-    for (var jsonTeam in jsonTeamList) {
-      outputTeams.add(Team.fromJson(jsonTeam));
-      debugPrint(outputTeams.last.name);
-    }
-    debugPrint(outputTeams.length.toString());
-    return outputTeams;
+    // List<dynamic> jsonList = jsonMap["rounds"];
+    Playoffs playoffs = Playoffs.fromJson(jsonMap);
+    return playoffs;
   } else {
     // If the server did not return a 200 OK response, then throw an exception.
     throw Exception('Failed to load teams from statsapi.web.nhl.com');
