@@ -4,6 +4,10 @@
 
 import 'package:meta/meta.dart';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+import 'dart:collection';
+import 'dart:convert';
 
 class Playoffs {
   Playoffs({
@@ -51,14 +55,14 @@ class RoundElement {
     required this.code,
     required this.names,
     required this.format,
-    required this.series,
+    required this.seriesList,
   });
 
   final int number;
   final int code;
   final RoundNames names;
   final Format format;
-  final List<Series> series;
+  final List<Series> seriesList;
 
   factory RoundElement.fromRawJson(String str) => RoundElement.fromJson(json.decode(str));
 
@@ -69,7 +73,7 @@ class RoundElement {
     code: json["code"],
     names: RoundNames.fromJson(json["names"]),
     format: Format.fromJson(json["format"]),
-    series: List<Series>.from(json["series"].map((x) => Series.fromJson(x))),
+    seriesList: List<Series>.from(json["series"].map((x) => Series.fromJson(x))),
   );
 
   Map<String, dynamic> toJson() => {
@@ -77,7 +81,7 @@ class RoundElement {
     "code": code,
     "names": names.toJson(),
     "format": format.toJson(),
-    "series": List<dynamic>.from(series.map((x) => x.toJson())),
+    "series": List<dynamic>.from(seriesList.map((x) => x.toJson())),
   };
 }
 
@@ -152,7 +156,7 @@ class Series {
   final String seriesCode;
   final SeriesNames names;
   final CurrentGame currentGame;
-  final Conference conference;
+  final Team conference;
   final SeriesRound round;
   final List<MatchupTeam> matchupTeams;
 
@@ -165,7 +169,7 @@ class Series {
     seriesCode: json["seriesCode"],
     names: SeriesNames.fromJson(json["names"]),
     currentGame: CurrentGame.fromJson(json["currentGame"]),
-    conference: Conference.fromJson(json["conference"]),
+    conference: Team.fromJson(json["conference"]),
     round: SeriesRound.fromJson(json["round"]),
     matchupTeams: List<MatchupTeam>.from(json["matchupTeams"].map((x) => MatchupTeam.fromJson(x))),
   );
@@ -181,30 +185,34 @@ class Series {
   };
 }
 
-class Conference {
-  Conference({
+class Team {
+  Team({
     required this.id,
     required this.name,
     required this.link,
   });
 
-  final int id;
-  final String name;
-  final String link;
+  int id;
+  String name;
+  String link;
 
-  factory Conference.fromRawJson(String str) => Conference.fromJson(json.decode(str));
+  factory Team.fromRawJson(String str) => Team.fromJson(json.decode(str));
 
   String toRawJson() => json.encode(toJson());
 
-  factory Conference.fromJson(Map<String, dynamic> json) => Conference(
-    id: json["id"] == null ? null : json["id"],
-    name: json["name"] == null ? null : json["name"],
-    link: json["link"],
-  );
+  factory Team.fromJson(Map<String, dynamic> json) {
+    var encoder = new JsonEncoder.withIndent("     ");
+    debugPrint(encoder.convert(json));
+    return Team(
+      id: (json["int"] == null) ? 0 : json["int"],
+      name: (json["name"] == null) ? " " : json["name"],
+      link: (json["link"] == null) ? " " : json["link"],
+    );
+  }
 
   Map<String, dynamic> toJson() => {
-    "id": id == null ? null : id,
-    "name": name == null ? null : name,
+    "id": id,
+    "name": name,
     "link": link,
   };
 }
@@ -284,7 +292,7 @@ class MatchupTeam {
     required this.seriesRecord,
   });
 
-  final Conference team;
+  final Team team;
   final Seed seed;
   final SeriesRecord seriesRecord;
 
@@ -293,7 +301,7 @@ class MatchupTeam {
   String toRawJson() => json.encode(toJson());
 
   factory MatchupTeam.fromJson(Map<String, dynamic> json) => MatchupTeam(
-    team: Conference.fromJson(json["team"]),
+    team: Team.fromJson(json["team"]),
     seed: Seed.fromJson(json["seed"]),
     seriesRecord: SeriesRecord.fromJson(json["seriesRecord"]),
   );
@@ -414,37 +422,37 @@ class SeriesRound {
 }
 
 
-
-class Team {
-  Team({
-    required this.name,
-    required this.abbreviation,
-    required this.conference,
-    required this.id,
-    required this.franchiseId,
-  });
-
-  final int id;
-  final String name;
-  final String abbreviation;
-  final String conference;
-  final int franchiseId;
-
-  factory Team.fromJson(Map<String, dynamic> json) =>
-      Team(
-        id: json["id"],
-        name: json["name"],
-        abbreviation: json["abbreviation"],
-        conference: json["conference"]["name"],
-        franchiseId: json["franchiseId"],
-      );
-
-  Map<String, dynamic> toJson() =>
-      {
-        "id": id,
-        "name": name,
-        "abbreviation": abbreviation,
-        "conference": conference,
-        "franchiseId": franchiseId,
-      };
-}
+//
+// class Team {
+//   Team({
+//     required this.name,
+//     required this.abbreviation,
+//     required this.conference,
+//     required this.id,
+//     required this.franchiseId,
+//   });
+//
+//   final int id;
+//   final String name;
+//   final String abbreviation;
+//   final String conference;
+//   final int franchiseId;
+//
+//   factory Team.fromJson(Map<String, dynamic> json) =>
+//       Team(
+//         id: json["id"],
+//         name: json["name"],
+//         abbreviation: json["abbreviation"],
+//         conference: json["conference"]["name"],
+//         franchiseId: json["franchiseId"],
+//       );
+//
+//   Map<String, dynamic> toJson() =>
+//       {
+//         "id": id,
+//         "name": name,
+//         "abbreviation": abbreviation,
+//         "conference": conference,
+//         "franchiseId": franchiseId,
+//       };
+// }
