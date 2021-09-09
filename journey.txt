@@ -1,0 +1,12 @@
+1. Discovered there is an NHL api. https://records.nhl.com/site/api
+Found documentation at https://gitlab.com/dword4/nhlapi/-/blob/master/records-api.md.
+
+https://statsapi.web.nhl.com/api/v1/teams
+
+
+https://www-league.nhlstatic.com/builds/site-core/01c1bfe15805d69e3ac31daa090865845c189b1d_1458063644/images/team/logo/current/1_light.svg
+gives the NY Devils.
+
+Quickly slapped together a script to save all the team IDs. 
+
+A quick wikipedia search revealed that there are 4 rounds in the Stanley Cup Finals (SCF).
