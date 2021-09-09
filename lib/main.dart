@@ -93,8 +93,8 @@ void main() {
 
 /// Fetches Team IDs using the NHL API
 Future<List<Team>> fetchTeamIDs() async {
-  final response = await http
-      .get(Uri.parse('https://statsapi.web.nhl.com/api/v1/teams'));
+  final response =
+      await http.get(Uri.parse('https://statsapi.web.nhl.com/api/v1/teams'));
 
   if (response.statusCode == 200) {
     // If the server did return a 200 OK response, then parse the JSON.
@@ -102,9 +102,9 @@ Future<List<Team>> fetchTeamIDs() async {
     List<dynamic> jsonTeamList = jsonMap["teams"];
     List<Team> outputTeams = [];
     for (var jsonTeam in jsonTeamList) {
-        outputTeams.add(Team.fromJson(jsonTeam));
-        debugPrint(outputTeams.last.name);
-      }
+      outputTeams.add(Team.fromJson(jsonTeam));
+      debugPrint(outputTeams.last.name);
+    }
     debugPrint(outputTeams.length.toString());
     return outputTeams;
   } else {
@@ -113,10 +113,9 @@ Future<List<Team>> fetchTeamIDs() async {
   }
 }
 
-
 Future<List<Team>> fetchPlayoffRound() async {
-  final response = await http
-      .get(Uri.parse('https://statsapi.web.nhl.com/api/v1/teams'));
+  final response =
+      await http.get(Uri.parse('https://statsapi.web.nhl.com/api/v1/teams'));
 
   if (response.statusCode == 200) {
     // If the server did return a 200 OK response, then parse the JSON.
