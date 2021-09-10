@@ -4,7 +4,7 @@
 ###### *Page last updated Sept 10, 2021*
 ---
 ## Demo
-![](demo.gif)
+![](http://g.recordit.co/HMrBBThMAr.gif)
 ---
  # Features
  ## Requirements
