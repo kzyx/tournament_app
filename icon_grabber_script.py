@@ -1,6 +1,5 @@
 import urllib.request
 import os
-import time
 
 # This code is needed to indicate folder where vips is stored on my PC
 os.environ['path'] += r';C:\\vips-dev-8.11\\bin'
