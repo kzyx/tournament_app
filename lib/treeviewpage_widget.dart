@@ -80,7 +80,7 @@ class _TreeViewPageState extends State<TreeViewPage> {
             centerTitle: true,
           ),
           body: Container(
-              margin: const EdgeInsets.only(top: 10.0, bottom: 0.0),
+              margin: const EdgeInsets.all(0.0),
               child: Column(
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -89,9 +89,9 @@ class _TreeViewPageState extends State<TreeViewPage> {
                     child: InteractiveViewer(
                         constrained: false,
                         boundaryMargin: EdgeInsets.all(60.0),
-                        // minScale: 0.8,
-                        // maxScale: 0.8,
-                        scaleEnabled: false,
+                        minScale: 0.001,
+                        maxScale: 1.0,
+                        scaleEnabled: true,
                         transformationController: _controller,
                         child: GraphView(
                           graph: _graph,
