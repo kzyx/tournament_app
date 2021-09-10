@@ -27,7 +27,6 @@ Simply download the repo, run `flutter run` in cmd/terminal and you should be go
 ---
 ## Libraries/Tools used
 - [GraphView](https://pub.dev/packages/graphview) for displaying the playoff bracket tree
-- [React Native Async Storage](https://react-native-async-storage.github.io/async-storage/) for saving habits and other data
 ---
 #### Random
 - Accidentally had a `final` keyword in the wrong place and ended up wasting an hour wondering why the state wasn't updating... LOL.
