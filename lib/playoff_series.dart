@@ -35,7 +35,7 @@ class Playoffs {
     id: json["id"],
     name: json["name"],
     season: json["season"],
-    defaultRound: json["defaultRound"],
+    defaultRound: (json["defaultRound"] == null) ? -1: json["defaultRound"],
     rounds: List<RoundElement>.from(json["rounds"].map((x) => RoundElement.fromJson(x))),
   );
 
@@ -202,9 +202,15 @@ class Team {
 
   factory Team.fromJson(Map<String, dynamic> json) {
     var encoder = new JsonEncoder.withIndent("     ");
-    debugPrint(encoder.convert(json));
+    // TODO: REMOVE
+    // debugPrint(encoder.convert(json));
+    // if (json["int"] == null) {
+    //   debugPrint(json["name"].toString());
+    //   debugPrint(json["link"].toString());
+    //   debugPrint(" ");
+    // }
     return Team(
-      id: (json["int"] == null) ? 0 : json["int"],
+      id: (json["id"] == null) ? 0 : json["id"],
       name: (json["name"] == null) ? " " : json["name"],
       link: (json["link"] == null) ? " " : json["link"],
     );
@@ -329,7 +335,7 @@ class Seed {
   String toRawJson() => json.encode(toJson());
 
   factory Seed.fromJson(Map<String, dynamic> json) => Seed(
-    type: json["type"],
+    type: (json["type"] == null) ? "-1" : json["type"],
     rank: json["rank"],
     isTop: json["isTop"],
   );
