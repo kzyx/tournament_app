@@ -12,9 +12,9 @@ GlobalKey<_TreeViewPageState> treeViewPageKey = GlobalKey();
 
 // Some default text styles
 const TextStyle whiteBoldText =
-    TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white);
+TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white);
 const TextStyle blackBoldText =
-    TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.black);
+TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.black);
 
 /// This widget is for the page with the tree view playoff bracket
 class TreeViewPage extends StatefulWidget {
@@ -26,30 +26,18 @@ class TreeViewPage extends StatefulWidget {
 
 /// This is the private State class for the TreeViewPage
 class _TreeViewPageState extends State<TreeViewPage> {
-  late Playoffs _playoffs;
+  bool finishedLoading = false; // Boolean representing whether API call done
   int currentRound = 3; // Set to three by default as per instructions
-  bool finishedLoading = false;
-  Graph _graph = Graph()..isTree = true;
+  Graph _graph = Graph()
+    ..isTree = true;
   BuchheimWalkerConfiguration builder = BuchheimWalkerConfiguration();
+  late Playoffs _playoffs;
+  late TransformationController _controller;
 
   @override
   Widget build(BuildContext context) {
     if (!finishedLoading) {
-      return Scaffold(
-          body: Container(
-        margin: const EdgeInsets.all(50),
-        child: Center(
-            child: Column(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const <Widget>[
-              SizedBox(
-                child: CircularProgressIndicator(),
-                width: 60,
-                height: 60,
-              ),
-            ])),
-      ));
+      return loadingScreenWidget();
     } else {
       return Scaffold(
           body: Container(
@@ -97,10 +85,10 @@ class _TreeViewPageState extends State<TreeViewPage> {
                   Expanded(
                     child: InteractiveViewer(
                         constrained: false,
-                        boundaryMargin: EdgeInsets.all(50.0),
+                        boundaryMargin: EdgeInsets.all(60.0),
                         minScale: 0.8,
                         maxScale: 0.8,
-                        scaleEnabled: false,
+                        transformationController: _controller,
                         child: GraphView(
                           graph: _graph,
                           algorithm: BuchheimWalkerAlgorithm(
@@ -119,10 +107,30 @@ class _TreeViewPageState extends State<TreeViewPage> {
     }
   }
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance!.addPostFrameCallback((_) {
+      // Initially, will generate graph for 2018-2019 season
+      generateGraphFromPlayoffs(20182019);
+    });
+    // Set up some graph options
+    builder
+      ..siblingSeparation = (25)
+      ..levelSeparation = (25)
+      ..subtreeSeparation = (25)
+      ..orientation = (BuchheimWalkerConfiguration.ORIENTATION_RIGHT_LEFT);
+
+    // Initialize controller for InteractiveViewer
+    _controller = TransformationController();
+    _controller.value = Matrix4.identity() * 0.8;
+  }
+
+  /// This widget visualizes a node in our graph
   Widget rectangleWidget(PlayoffNode playoffNode) {
     return InkWell(
       onTap: () {
-        print('clicked');
+        // TODO: Could add some feature
       },
       child: AnimatedOpacity(
           opacity: (currentRound >= playoffNode.series.round) ? 1.00 : 0.00,
@@ -141,7 +149,8 @@ class _TreeViewPageState extends State<TreeViewPage> {
                 Image(
                   image: finishedLoading
                       ? AssetImage(
-                          "assets/team_${playoffNode.series.matchupTeams[0].team.id}.png")
+                      "assets/team_${playoffNode.series.matchupTeams[0].team
+                          .id}.png")
                       : AssetImage("assets/blank.png"),
                   width: 70,
                   height: 70,
@@ -150,24 +159,26 @@ class _TreeViewPageState extends State<TreeViewPage> {
                   Text(
                       finishedLoading
                           ? Utils.consistentVersus(
-                              playoffNode.series.names.matchupShortName)
+                          playoffNode.series.names.matchupShortName)
                           : 'Loading...',
                       style: whiteBoldText),
-                  Text(
-                      (finishedLoading &&
-                              currentRound > playoffNode.series.round)
-                          ? playoffNode.series.currentGame.seriesSummary
-                              .seriesStatusShort
-                          : ''.padLeft(
-                              playoffNode.series.currentGame.seriesSummary
-                                  .seriesStatusShort.length,
-                              '  '),
-                      style: whiteBoldText),
+                  AnimatedOpacity(
+                    opacity: (finishedLoading &&
+                        (currentRound > playoffNode.series.round))
+                        ? 1.00
+                        : 0.00,
+                    duration: const Duration(milliseconds: 500),
+                    child: Text(
+                        playoffNode.series.currentGame.seriesSummary
+                            .seriesStatusShort,
+                        style: whiteBoldText),
+                  )
                 ]),
                 Image(
                   image: finishedLoading
                       ? AssetImage(
-                          "assets/team_${playoffNode.series.matchupTeams[1].team.id}.png")
+                      "assets/team_${playoffNode.series.matchupTeams[1].team
+                          .id}.png")
                       : AssetImage("assets/blank.png"),
                   width: 70,
                   height: 70,
@@ -179,20 +190,6 @@ class _TreeViewPageState extends State<TreeViewPage> {
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance!.addPostFrameCallback((_) {
-      // Initially, call will begin at season 20182019
-      generateGraphFromPlayoffs(20182019);
-    });
-    builder
-      ..siblingSeparation = (25)
-      ..levelSeparation = (25)
-      ..subtreeSeparation = (25)
-      ..orientation = (BuchheimWalkerConfiguration.ORIENTATION_RIGHT_LEFT);
-  }
-
   /// This async function fetches the playoff data from the NHL API, and then
   /// generates a new [Graph], updating the _graph variable. Returns [void].
   void generateGraphFromPlayoffs(int season) async {
@@ -201,12 +198,16 @@ class _TreeViewPageState extends State<TreeViewPage> {
     // In the below code, we generate nodes for each playoff series
     // Stanley Cup Finals (1 series) ////////////////////
     Series series =
-        _playoffs.rounds.firstWhere((r) => (r.number == 4)).seriesList[0];
+    _playoffs.rounds
+        .firstWhere((r) => (r.number == 4))
+        .seriesList[0];
     PlayoffNode root = PlayoffNode(id: 1, series: series);
 
     // Conference Finals (2 series) /////////////////////
     List<Series> seriesList =
-        _playoffs.rounds.firstWhere((r) => (r.number == 3)).seriesList;
+        _playoffs.rounds
+            .firstWhere((r) => (r.number == 3))
+            .seriesList;
     PlayoffNode rootW = PlayoffNode(
         id: 2,
         series: seriesList.firstWhere((s) => s.conference.name == 'Western'));
@@ -236,15 +237,15 @@ class _TreeViewPageState extends State<TreeViewPage> {
         .firstWhere((r) => (r.number == 1))
         .seriesList
         .where((s) =>
-            s.conference.name == 'Western' &&
-            (s.matchupTeams[0].team.name ==
-                    rootWChild1.series.matchupTeams[0].team.name ||
-                s.matchupTeams[0].team.name ==
-                    rootWChild1.series.matchupTeams[1].team.name ||
-                s.matchupTeams[1].team.name ==
-                    rootWChild1.series.matchupTeams[0].team.name ||
-                s.matchupTeams[1].team.name ==
-                    rootWChild1.series.matchupTeams[1].team.name))
+    s.conference.name == 'Western' &&
+        (s.matchupTeams[0].team.name ==
+            rootWChild1.series.matchupTeams[0].team.name ||
+            s.matchupTeams[0].team.name ==
+                rootWChild1.series.matchupTeams[1].team.name ||
+            s.matchupTeams[1].team.name ==
+                rootWChild1.series.matchupTeams[0].team.name ||
+            s.matchupTeams[1].team.name ==
+                rootWChild1.series.matchupTeams[1].team.name))
         .toList();
     PlayoffNode rootWChild1Child1 = PlayoffNode(id: 8, series: seriesList[0]);
     PlayoffNode rootWChild1Child2 = PlayoffNode(id: 9, series: seriesList[1]);
@@ -253,15 +254,15 @@ class _TreeViewPageState extends State<TreeViewPage> {
         .firstWhere((r) => (r.number == 1))
         .seriesList
         .where((s) =>
-            s.conference.name == 'Western' &&
-            (s.matchupTeams[0].team.name ==
-                    rootWChild2.series.matchupTeams[0].team.name ||
-                s.matchupTeams[0].team.name ==
-                    rootWChild2.series.matchupTeams[1].team.name ||
-                s.matchupTeams[1].team.name ==
-                    rootWChild2.series.matchupTeams[0].team.name ||
-                s.matchupTeams[1].team.name ==
-                    rootWChild2.series.matchupTeams[1].team.name))
+    s.conference.name == 'Western' &&
+        (s.matchupTeams[0].team.name ==
+            rootWChild2.series.matchupTeams[0].team.name ||
+            s.matchupTeams[0].team.name ==
+                rootWChild2.series.matchupTeams[1].team.name ||
+            s.matchupTeams[1].team.name ==
+                rootWChild2.series.matchupTeams[0].team.name ||
+            s.matchupTeams[1].team.name ==
+                rootWChild2.series.matchupTeams[1].team.name))
         .toList();
     PlayoffNode rootWChild2Child1 = PlayoffNode(id: 10, series: seriesList[0]);
     PlayoffNode rootWChild2Child2 = PlayoffNode(id: 11, series: seriesList[1]);
@@ -270,15 +271,15 @@ class _TreeViewPageState extends State<TreeViewPage> {
         .firstWhere((r) => (r.number == 1))
         .seriesList
         .where((s) =>
-            s.conference.name == 'Eastern' &&
-            (s.matchupTeams[0].team.name ==
-                    rootEChild1.series.matchupTeams[0].team.name ||
-                s.matchupTeams[0].team.name ==
-                    rootEChild1.series.matchupTeams[1].team.name ||
-                s.matchupTeams[1].team.name ==
-                    rootEChild1.series.matchupTeams[0].team.name ||
-                s.matchupTeams[1].team.name ==
-                    rootEChild1.series.matchupTeams[1].team.name))
+    s.conference.name == 'Eastern' &&
+        (s.matchupTeams[0].team.name ==
+            rootEChild1.series.matchupTeams[0].team.name ||
+            s.matchupTeams[0].team.name ==
+                rootEChild1.series.matchupTeams[1].team.name ||
+            s.matchupTeams[1].team.name ==
+                rootEChild1.series.matchupTeams[0].team.name ||
+            s.matchupTeams[1].team.name ==
+                rootEChild1.series.matchupTeams[1].team.name))
         .toList();
     PlayoffNode rootEChild1Child1 = PlayoffNode(id: 12, series: seriesList[0]);
     PlayoffNode rootEChild1Child2 = PlayoffNode(id: 13, series: seriesList[1]);
@@ -287,15 +288,15 @@ class _TreeViewPageState extends State<TreeViewPage> {
         .firstWhere((r) => (r.number == 1))
         .seriesList
         .where((s) =>
-            s.conference.name == 'Eastern' &&
-            (s.matchupTeams[0].team.name ==
-                    rootEChild2.series.matchupTeams[0].team.name ||
-                s.matchupTeams[0].team.name ==
-                    rootEChild2.series.matchupTeams[1].team.name ||
-                s.matchupTeams[1].team.name ==
-                    rootEChild2.series.matchupTeams[0].team.name ||
-                s.matchupTeams[1].team.name ==
-                    rootEChild2.series.matchupTeams[1].team.name))
+    s.conference.name == 'Eastern' &&
+        (s.matchupTeams[0].team.name ==
+            rootEChild2.series.matchupTeams[0].team.name ||
+            s.matchupTeams[0].team.name ==
+                rootEChild2.series.matchupTeams[1].team.name ||
+            s.matchupTeams[1].team.name ==
+                rootEChild2.series.matchupTeams[0].team.name ||
+            s.matchupTeams[1].team.name ==
+                rootEChild2.series.matchupTeams[1].team.name))
         .toList();
     PlayoffNode rootEChild2Child1 = PlayoffNode(id: 14, series: seriesList[0]);
     PlayoffNode rootEChild2Child2 = PlayoffNode(id: 15, series: seriesList[1]);
@@ -332,5 +333,24 @@ class _TreeViewPageState extends State<TreeViewPage> {
     setState(() {
       finishedLoading = true;
     });
+  }
+
+  /// This widget shows a circular loading symbol in the center of the screen
+  Widget loadingScreenWidget() {
+    return Scaffold(
+        body: Container(
+          margin: const EdgeInsets.all(50),
+          child: Center(
+              child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const <Widget>[
+                    SizedBox(
+                      child: CircularProgressIndicator(),
+                      width: 60,
+                      height: 60,
+                    ),
+                  ])),
+        ));
   }
 }
