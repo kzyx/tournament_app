@@ -11,10 +11,10 @@ import 'package:tournament_app/utils.dart' as Utils;
 GlobalKey<_TreeViewPageState> treeViewPageKey = GlobalKey();
 
 // Some default text styles
-const TextStyle whiteBoldText = TextStyle(
-    fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white);
-const TextStyle blackBoldText = TextStyle(
-    fontSize: 17, fontWeight: FontWeight.bold, color: Colors.black);
+const TextStyle whiteBoldText =
+    TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white);
+const TextStyle blackBoldText =
+    TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.black);
 
 /// This widget is for the page with the tree view playoff bracket
 class TreeViewPage extends StatefulWidget {
@@ -29,13 +29,27 @@ class _TreeViewPageState extends State<TreeViewPage> {
   late Playoffs _playoffs;
   int currentRound = 3; // Set to three by default as per instructions
   bool finishedLoading = false;
-  Graph graph = Graph()..isTree = true;
+  Graph _graph = Graph()..isTree = true;
   BuchheimWalkerConfiguration builder = BuchheimWalkerConfiguration();
 
   @override
   Widget build(BuildContext context) {
     if (!finishedLoading) {
-      return CircularProgressIndicator();
+      return Scaffold(
+          body: Container(
+        margin: const EdgeInsets.all(50),
+        child: Center(
+            child: Column(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const <Widget>[
+              SizedBox(
+                child: CircularProgressIndicator(),
+                width: 60,
+                height: 60,
+              ),
+            ])),
+      ));
     } else {
       return Scaffold(
           body: Container(
@@ -53,7 +67,7 @@ class _TreeViewPageState extends State<TreeViewPage> {
                           FloatingActionButton.extended(
                             label: Text("Prev\nRound", style: whiteBoldText),
                             onPressed: () {
-                              // Add your onPressed code here!
+                              // Decrements round number if possible
                               setState(() {
                                 if (currentRound >= 2) {
                                   currentRound -= 1;
@@ -67,7 +81,7 @@ class _TreeViewPageState extends State<TreeViewPage> {
                           FloatingActionButton.extended(
                             label: Text("Next\nRound", style: whiteBoldText),
                             onPressed: () {
-                              // Add your onPressed code here!
+                              // Increments round number if possible
                               setState(() {
                                 if (currentRound <= 4) {
                                   currentRound += 1;
@@ -86,9 +100,9 @@ class _TreeViewPageState extends State<TreeViewPage> {
                         boundaryMargin: EdgeInsets.all(50.0),
                         minScale: 0.8,
                         maxScale: 0.8,
-                        // scaleEnabled: false,
+                        scaleEnabled: false,
                         child: GraphView(
-                          graph: graph,
+                          graph: _graph,
                           algorithm: BuchheimWalkerAlgorithm(
                               builder, TreeEdgeRenderer(builder)),
                           paint: Paint()
@@ -111,9 +125,7 @@ class _TreeViewPageState extends State<TreeViewPage> {
         print('clicked');
       },
       child: AnimatedOpacity(
-          opacity: (currentRound >= playoffNode.series.round.number)
-              ? 1.00
-              : 0.00,
+          opacity: (currentRound >= playoffNode.series.round) ? 1.00 : 0.00,
           duration: const Duration(milliseconds: 500),
           child: Container(
             padding: EdgeInsets.all(4),
@@ -143,8 +155,7 @@ class _TreeViewPageState extends State<TreeViewPage> {
                       style: whiteBoldText),
                   Text(
                       (finishedLoading &&
-                              currentRound >
-                                  playoffNode.series.round.number)
+                              currentRound > playoffNode.series.round)
                           ? playoffNode.series.currentGame.seriesSummary
                               .seriesStatusShort
                           : ''.padLeft(
@@ -289,27 +300,28 @@ class _TreeViewPageState extends State<TreeViewPage> {
     PlayoffNode rootEChild2Child1 = PlayoffNode(id: 14, series: seriesList[0]);
     PlayoffNode rootEChild2Child2 = PlayoffNode(id: 15, series: seriesList[1]);
 
-    graph = Graph();
+    // In the below code, we generate a new graph, storing in _graph
+    _graph = Graph();
     Paint paint = Paint()
       ..color = Colors.black
       ..strokeWidth = 5
       ..style = PaintingStyle.stroke;
-    graph.addEdge(root, rootW, paint: paint);
-    graph.addEdge(root, rootE, paint: paint);
-    graph.addEdge(rootW, rootWChild1, paint: paint);
-    graph.addEdge(rootW, rootWChild2, paint: paint);
-    graph.addEdge(rootE, rootEChild1, paint: paint);
-    graph.addEdge(rootE, rootEChild2, paint: paint);
+    _graph.addEdge(root, rootW, paint: paint);
+    _graph.addEdge(root, rootE, paint: paint);
+    _graph.addEdge(rootW, rootWChild1, paint: paint);
+    _graph.addEdge(rootW, rootWChild2, paint: paint);
+    _graph.addEdge(rootE, rootEChild1, paint: paint);
+    _graph.addEdge(rootE, rootEChild2, paint: paint);
 
-    graph.addEdge(rootWChild1, rootWChild1Child1, paint: paint);
-    graph.addEdge(rootWChild1, rootWChild1Child2, paint: paint);
-    graph.addEdge(rootWChild2, rootWChild2Child1, paint: paint);
-    graph.addEdge(rootWChild2, rootWChild2Child2, paint: paint);
+    _graph.addEdge(rootWChild1, rootWChild1Child1, paint: paint);
+    _graph.addEdge(rootWChild1, rootWChild1Child2, paint: paint);
+    _graph.addEdge(rootWChild2, rootWChild2Child1, paint: paint);
+    _graph.addEdge(rootWChild2, rootWChild2Child2, paint: paint);
 
-    graph.addEdge(rootEChild1, rootEChild1Child1, paint: paint);
-    graph.addEdge(rootEChild1, rootEChild1Child2, paint: paint);
-    graph.addEdge(rootEChild2, rootEChild2Child1, paint: paint);
-    graph.addEdge(rootEChild2, rootEChild2Child2, paint: paint);
+    _graph.addEdge(rootEChild1, rootEChild1Child1, paint: paint);
+    _graph.addEdge(rootEChild1, rootEChild1Child2, paint: paint);
+    _graph.addEdge(rootEChild2, rootEChild2Child1, paint: paint);
+    _graph.addEdge(rootEChild2, rootEChild2Child2, paint: paint);
 
     builder
       ..siblingSeparation = (25)
