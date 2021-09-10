@@ -5,10 +5,12 @@ import 'package:tournament_app/dropdown_widget.dart';
 import 'package:tournament_app/models.dart';
 import 'package:tournament_app/utils.dart' as Utils;
 
-// Key allows Dropdown widget to call method inside TreeViewPage
+// Key allows Dropdown widget to call method inside TreeViewPage.
+// In some languages the use of global variables is frowned upon, so in the
+// future it could be advisable to replace this.
 GlobalKey<_TreeViewPageState> treeViewPageKey = GlobalKey();
 
-// Text styles
+// Some default text styles
 const TextStyle whiteBoldText = TextStyle(
     fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white);
 const TextStyle blackBoldText = TextStyle(
@@ -24,7 +26,7 @@ class TreeViewPage extends StatefulWidget {
 
 /// This is the private State class for the TreeViewPage
 class _TreeViewPageState extends State<TreeViewPage> {
-  late Playoffs playoffs;
+  late Playoffs _playoffs;
   int currentRound = 3; // Set to three by default as per instructions
   bool finishedLoading = false;
   Graph graph = Graph()..isTree = true;
@@ -72,7 +74,6 @@ class _TreeViewPageState extends State<TreeViewPage> {
                                 }
                               });
                             },
-                            // child: const Text("Add"),
                             backgroundColor: Colors.orange,
                           ),
                         ],
@@ -95,8 +96,6 @@ class _TreeViewPageState extends State<TreeViewPage> {
                             ..strokeWidth = 1
                             ..style = PaintingStyle.stroke,
                           builder: (Node node) {
-                            // I can decide what widget should be shown here based on the id
-                            // var a = node.key?.value as int;
                             return rectangleWidget(node as PlayoffNode);
                           },
                         )),
@@ -120,7 +119,7 @@ class _TreeViewPageState extends State<TreeViewPage> {
             padding: EdgeInsets.all(4),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(color: Colors.teal, spreadRadius: 1),
               ],
             ),
@@ -141,10 +140,7 @@ class _TreeViewPageState extends State<TreeViewPage> {
                           ? Utils.consistentVersus(
                               playoffNode.series.names.matchupShortName)
                           : 'Loading...',
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                          color: Colors.white)),
+                      style: whiteBoldText),
                   Text(
                       (finishedLoading &&
                               currentRound >
@@ -155,10 +151,7 @@ class _TreeViewPageState extends State<TreeViewPage> {
                               playoffNode.series.currentGame.seriesSummary
                                   .seriesStatusShort.length,
                               '  '),
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                          color: Colors.white)),
+                      style: whiteBoldText),
                 ]),
                 Image(
                   image: finishedLoading
@@ -180,7 +173,7 @@ class _TreeViewPageState extends State<TreeViewPage> {
     super.initState();
     WidgetsBinding.instance!.addPostFrameCallback((_) {
       // Initially, call will begin at season 20182019
-      asyncMethod(20182019);
+      generateGraphFromPlayoffs(20182019);
     });
     builder
       ..siblingSeparation = (25)
@@ -189,17 +182,20 @@ class _TreeViewPageState extends State<TreeViewPage> {
       ..orientation = (BuchheimWalkerConfiguration.ORIENTATION_RIGHT_LEFT);
   }
 
-  void asyncMethod(int season) async {
-    playoffs = await Utils.fetchPlayoffs(season);
-    debugPrint("TODO: got to check111");
+  /// This async function fetches the playoff data from the NHL API, and then
+  /// generates a new [Graph], updating the _graph variable. Returns [void].
+  void generateGraphFromPlayoffs(int season) async {
+    _playoffs = await Utils.fetchPlayoffs(season);
+
+    // In the below code, we generate nodes for each playoff series
     // Stanley Cup Finals (1 series) ////////////////////
     Series series =
-        playoffs.rounds.where((r) => (r.number == 4)).toList()[0].seriesList[0];
+        _playoffs.rounds.firstWhere((r) => (r.number == 4)).seriesList[0];
     PlayoffNode root = PlayoffNode(id: 1, series: series);
 
     // Conference Finals (2 series) /////////////////////
     List<Series> seriesList =
-        playoffs.rounds.where((r) => (r.number == 3)).toList()[0].seriesList;
+        _playoffs.rounds.firstWhere((r) => (r.number == 3)).seriesList;
     PlayoffNode rootW = PlayoffNode(
         id: 2,
         series: seriesList.firstWhere((s) => s.conference.name == 'Western'));
@@ -208,7 +204,7 @@ class _TreeViewPageState extends State<TreeViewPage> {
         series: seriesList.firstWhere((s) => s.conference.name == 'Eastern'));
 
     // Conference Semifinals (4 series) /////////////////
-    seriesList = playoffs.rounds
+    seriesList = _playoffs.rounds
         .firstWhere((r) => (r.number == 2))
         .seriesList
         .where((s) => s.conference.name == 'Western')
@@ -216,7 +212,7 @@ class _TreeViewPageState extends State<TreeViewPage> {
     PlayoffNode rootWChild1 = PlayoffNode(id: 4, series: seriesList[0]);
     PlayoffNode rootWChild2 = PlayoffNode(id: 5, series: seriesList[1]);
 
-    seriesList = playoffs.rounds
+    seriesList = _playoffs.rounds
         .firstWhere((r) => (r.number == 2))
         .seriesList
         .where((s) => s.conference.name == 'Eastern')
@@ -225,7 +221,7 @@ class _TreeViewPageState extends State<TreeViewPage> {
     PlayoffNode rootEChild2 = PlayoffNode(id: 7, series: seriesList[1]);
 
     // Conference Quarterfinals (8 series) //////////////
-    seriesList = playoffs.rounds
+    seriesList = _playoffs.rounds
         .firstWhere((r) => (r.number == 1))
         .seriesList
         .where((s) =>
@@ -242,7 +238,7 @@ class _TreeViewPageState extends State<TreeViewPage> {
     PlayoffNode rootWChild1Child1 = PlayoffNode(id: 8, series: seriesList[0]);
     PlayoffNode rootWChild1Child2 = PlayoffNode(id: 9, series: seriesList[1]);
 
-    seriesList = playoffs.rounds
+    seriesList = _playoffs.rounds
         .firstWhere((r) => (r.number == 1))
         .seriesList
         .where((s) =>
@@ -259,7 +255,7 @@ class _TreeViewPageState extends State<TreeViewPage> {
     PlayoffNode rootWChild2Child1 = PlayoffNode(id: 10, series: seriesList[0]);
     PlayoffNode rootWChild2Child2 = PlayoffNode(id: 11, series: seriesList[1]);
 
-    seriesList = playoffs.rounds
+    seriesList = _playoffs.rounds
         .firstWhere((r) => (r.number == 1))
         .seriesList
         .where((s) =>
@@ -276,7 +272,7 @@ class _TreeViewPageState extends State<TreeViewPage> {
     PlayoffNode rootEChild1Child1 = PlayoffNode(id: 12, series: seriesList[0]);
     PlayoffNode rootEChild1Child2 = PlayoffNode(id: 13, series: seriesList[1]);
 
-    seriesList = playoffs.rounds
+    seriesList = _playoffs.rounds
         .firstWhere((r) => (r.number == 1))
         .seriesList
         .where((s) =>
@@ -324,6 +320,5 @@ class _TreeViewPageState extends State<TreeViewPage> {
     setState(() {
       finishedLoading = true;
     });
-    debugPrint("got here 2222");
   }
 }

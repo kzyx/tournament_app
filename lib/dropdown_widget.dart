@@ -40,7 +40,7 @@ class _PlayoffsYearDropdownState extends State<PlayoffsYearDropdown> {
           treeViewPageKey.currentState!.finishedLoading = false;
           debugPrint(season.toString());
         });
-        treeViewPageKey.currentState!.asyncMethod(season);
+        treeViewPageKey.currentState!.generateGraphFromPlayoffs(season);
       },
       items: playoffsYear.map((playoffsYear) {
         return DropdownMenuItem<String>(
