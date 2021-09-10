@@ -12,9 +12,9 @@ GlobalKey<_TreeViewPageState> treeViewPageKey = GlobalKey();
 
 // Some default text styles
 const TextStyle whiteBoldText =
-TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white);
+    TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white);
 const TextStyle blackBoldText =
-TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.black);
+    TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.black);
 
 /// This widget is for the page with the tree view playoff bracket
 class TreeViewPage extends StatefulWidget {
@@ -28,8 +28,7 @@ class TreeViewPage extends StatefulWidget {
 class _TreeViewPageState extends State<TreeViewPage> {
   bool finishedLoading = false; // Boolean representing whether API call done
   int currentRound = 3; // Set to three by default as per instructions
-  Graph _graph = Graph()
-    ..isTree = true;
+  Graph _graph = Graph()..isTree = true;
   BuchheimWalkerConfiguration builder = BuchheimWalkerConfiguration();
   late Playoffs _playoffs;
   late TransformationController _controller;
@@ -40,54 +39,59 @@ class _TreeViewPageState extends State<TreeViewPage> {
       return loadingScreenWidget();
     } else {
       return Scaffold(
+          appBar: AppBar(
+            title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  const PlayoffsYearDropdown(),
+                  SizedBox(width: 30),
+                  FloatingActionButton.extended(
+                    label: Text("Prev\nRound", style: whiteBoldText),
+                    onPressed: () {
+                      // Decrements round number if possible
+                      setState(() {
+                        if (currentRound >= 2) {
+                          currentRound -= 1;
+                        }
+                      });
+                    },
+                    backgroundColor: Colors.orange,
+                  ),
+                  Container(
+                    child: Center(
+                        child: Text(currentRound.toString(),
+                            style: whiteBoldText)),
+                    width: 30.0,
+                  ),
+                  FloatingActionButton.extended(
+                    label: Text("Next\nRound", style: whiteBoldText),
+                    onPressed: () {
+                      // Increments round number if possible
+                      setState(() {
+                        if (currentRound <= 4) {
+                          currentRound += 1;
+                        }
+                      });
+                    },
+                    backgroundColor: Colors.orange,
+                  ),
+                ]),
+            centerTitle: true,
+          ),
           body: Container(
-              margin: const EdgeInsets.only(top: 90.0, bottom: 0.0),
+              margin: const EdgeInsets.only(top: 10.0, bottom: 0.0),
               child: Column(
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Wrap(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: <Widget>[
-                          const PlayoffsYearDropdown(),
-                          FloatingActionButton.extended(
-                            label: Text("Prev\nRound", style: whiteBoldText),
-                            onPressed: () {
-                              // Decrements round number if possible
-                              setState(() {
-                                if (currentRound >= 2) {
-                                  currentRound -= 1;
-                                }
-                              });
-                            },
-                            // child: const Text("Remove"),
-                            backgroundColor: Colors.orange,
-                          ),
-                          Text(currentRound.toString(), style: blackBoldText),
-                          FloatingActionButton.extended(
-                            label: Text("Next\nRound", style: whiteBoldText),
-                            onPressed: () {
-                              // Increments round number if possible
-                              setState(() {
-                                if (currentRound <= 4) {
-                                  currentRound += 1;
-                                }
-                              });
-                            },
-                            backgroundColor: Colors.orange,
-                          ),
-                        ],
-                      )
-                    ],
-                  ),
                   Expanded(
                     child: InteractiveViewer(
                         constrained: false,
                         boundaryMargin: EdgeInsets.all(60.0),
-                        minScale: 0.8,
-                        maxScale: 0.8,
+                        // minScale: 0.8,
+                        // maxScale: 0.8,
+                        scaleEnabled: false,
                         transformationController: _controller,
                         child: GraphView(
                           graph: _graph,
@@ -149,8 +153,7 @@ class _TreeViewPageState extends State<TreeViewPage> {
                 Image(
                   image: finishedLoading
                       ? AssetImage(
-                      "assets/team_${playoffNode.series.matchupTeams[0].team
-                          .id}.png")
+                          "assets/team_${playoffNode.series.matchupTeams[0].team.id}.png")
                       : AssetImage("assets/blank.png"),
                   width: 70,
                   height: 70,
@@ -159,26 +162,25 @@ class _TreeViewPageState extends State<TreeViewPage> {
                   Text(
                       finishedLoading
                           ? Utils.consistentVersus(
-                          playoffNode.series.names.matchupShortName)
+                              playoffNode.series.names.matchupShortName)
                           : 'Loading...',
                       style: whiteBoldText),
                   AnimatedOpacity(
                     opacity: (finishedLoading &&
-                        (currentRound > playoffNode.series.round))
+                            (currentRound > playoffNode.series.round))
                         ? 1.00
                         : 0.00,
                     duration: const Duration(milliseconds: 500),
                     child: Text(
-                        playoffNode.series.currentGame.seriesSummary
-                            .seriesStatusShort,
+                        playoffNode
+                            .series.currentGame.seriesSummary.seriesStatusShort,
                         style: whiteBoldText),
                   )
                 ]),
                 Image(
                   image: finishedLoading
                       ? AssetImage(
-                      "assets/team_${playoffNode.series.matchupTeams[1].team
-                          .id}.png")
+                          "assets/team_${playoffNode.series.matchupTeams[1].team.id}.png")
                       : AssetImage("assets/blank.png"),
                   width: 70,
                   height: 70,
@@ -198,16 +200,12 @@ class _TreeViewPageState extends State<TreeViewPage> {
     // In the below code, we generate nodes for each playoff series
     // Stanley Cup Finals (1 series) ////////////////////
     Series series =
-    _playoffs.rounds
-        .firstWhere((r) => (r.number == 4))
-        .seriesList[0];
+        _playoffs.rounds.firstWhere((r) => (r.number == 4)).seriesList[0];
     PlayoffNode root = PlayoffNode(id: 1, series: series);
 
     // Conference Finals (2 series) /////////////////////
     List<Series> seriesList =
-        _playoffs.rounds
-            .firstWhere((r) => (r.number == 3))
-            .seriesList;
+        _playoffs.rounds.firstWhere((r) => (r.number == 3)).seriesList;
     PlayoffNode rootW = PlayoffNode(
         id: 2,
         series: seriesList.firstWhere((s) => s.conference.name == 'Western'));
@@ -237,15 +235,15 @@ class _TreeViewPageState extends State<TreeViewPage> {
         .firstWhere((r) => (r.number == 1))
         .seriesList
         .where((s) =>
-    s.conference.name == 'Western' &&
-        (s.matchupTeams[0].team.name ==
-            rootWChild1.series.matchupTeams[0].team.name ||
-            s.matchupTeams[0].team.name ==
-                rootWChild1.series.matchupTeams[1].team.name ||
-            s.matchupTeams[1].team.name ==
-                rootWChild1.series.matchupTeams[0].team.name ||
-            s.matchupTeams[1].team.name ==
-                rootWChild1.series.matchupTeams[1].team.name))
+            s.conference.name == 'Western' &&
+            (s.matchupTeams[0].team.name ==
+                    rootWChild1.series.matchupTeams[0].team.name ||
+                s.matchupTeams[0].team.name ==
+                    rootWChild1.series.matchupTeams[1].team.name ||
+                s.matchupTeams[1].team.name ==
+                    rootWChild1.series.matchupTeams[0].team.name ||
+                s.matchupTeams[1].team.name ==
+                    rootWChild1.series.matchupTeams[1].team.name))
         .toList();
     PlayoffNode rootWChild1Child1 = PlayoffNode(id: 8, series: seriesList[0]);
     PlayoffNode rootWChild1Child2 = PlayoffNode(id: 9, series: seriesList[1]);
@@ -254,15 +252,15 @@ class _TreeViewPageState extends State<TreeViewPage> {
         .firstWhere((r) => (r.number == 1))
         .seriesList
         .where((s) =>
-    s.conference.name == 'Western' &&
-        (s.matchupTeams[0].team.name ==
-            rootWChild2.series.matchupTeams[0].team.name ||
-            s.matchupTeams[0].team.name ==
-                rootWChild2.series.matchupTeams[1].team.name ||
-            s.matchupTeams[1].team.name ==
-                rootWChild2.series.matchupTeams[0].team.name ||
-            s.matchupTeams[1].team.name ==
-                rootWChild2.series.matchupTeams[1].team.name))
+            s.conference.name == 'Western' &&
+            (s.matchupTeams[0].team.name ==
+                    rootWChild2.series.matchupTeams[0].team.name ||
+                s.matchupTeams[0].team.name ==
+                    rootWChild2.series.matchupTeams[1].team.name ||
+                s.matchupTeams[1].team.name ==
+                    rootWChild2.series.matchupTeams[0].team.name ||
+                s.matchupTeams[1].team.name ==
+                    rootWChild2.series.matchupTeams[1].team.name))
         .toList();
     PlayoffNode rootWChild2Child1 = PlayoffNode(id: 10, series: seriesList[0]);
     PlayoffNode rootWChild2Child2 = PlayoffNode(id: 11, series: seriesList[1]);
@@ -271,15 +269,15 @@ class _TreeViewPageState extends State<TreeViewPage> {
         .firstWhere((r) => (r.number == 1))
         .seriesList
         .where((s) =>
-    s.conference.name == 'Eastern' &&
-        (s.matchupTeams[0].team.name ==
-            rootEChild1.series.matchupTeams[0].team.name ||
-            s.matchupTeams[0].team.name ==
-                rootEChild1.series.matchupTeams[1].team.name ||
-            s.matchupTeams[1].team.name ==
-                rootEChild1.series.matchupTeams[0].team.name ||
-            s.matchupTeams[1].team.name ==
-                rootEChild1.series.matchupTeams[1].team.name))
+            s.conference.name == 'Eastern' &&
+            (s.matchupTeams[0].team.name ==
+                    rootEChild1.series.matchupTeams[0].team.name ||
+                s.matchupTeams[0].team.name ==
+                    rootEChild1.series.matchupTeams[1].team.name ||
+                s.matchupTeams[1].team.name ==
+                    rootEChild1.series.matchupTeams[0].team.name ||
+                s.matchupTeams[1].team.name ==
+                    rootEChild1.series.matchupTeams[1].team.name))
         .toList();
     PlayoffNode rootEChild1Child1 = PlayoffNode(id: 12, series: seriesList[0]);
     PlayoffNode rootEChild1Child2 = PlayoffNode(id: 13, series: seriesList[1]);
@@ -288,15 +286,15 @@ class _TreeViewPageState extends State<TreeViewPage> {
         .firstWhere((r) => (r.number == 1))
         .seriesList
         .where((s) =>
-    s.conference.name == 'Eastern' &&
-        (s.matchupTeams[0].team.name ==
-            rootEChild2.series.matchupTeams[0].team.name ||
-            s.matchupTeams[0].team.name ==
-                rootEChild2.series.matchupTeams[1].team.name ||
-            s.matchupTeams[1].team.name ==
-                rootEChild2.series.matchupTeams[0].team.name ||
-            s.matchupTeams[1].team.name ==
-                rootEChild2.series.matchupTeams[1].team.name))
+            s.conference.name == 'Eastern' &&
+            (s.matchupTeams[0].team.name ==
+                    rootEChild2.series.matchupTeams[0].team.name ||
+                s.matchupTeams[0].team.name ==
+                    rootEChild2.series.matchupTeams[1].team.name ||
+                s.matchupTeams[1].team.name ==
+                    rootEChild2.series.matchupTeams[0].team.name ||
+                s.matchupTeams[1].team.name ==
+                    rootEChild2.series.matchupTeams[1].team.name))
         .toList();
     PlayoffNode rootEChild2Child1 = PlayoffNode(id: 14, series: seriesList[0]);
     PlayoffNode rootEChild2Child2 = PlayoffNode(id: 15, series: seriesList[1]);
@@ -339,18 +337,18 @@ class _TreeViewPageState extends State<TreeViewPage> {
   Widget loadingScreenWidget() {
     return Scaffold(
         body: Container(
-          margin: const EdgeInsets.all(50),
-          child: Center(
-              child: Column(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const <Widget>[
-                    SizedBox(
-                      child: CircularProgressIndicator(),
-                      width: 60,
-                      height: 60,
-                    ),
-                  ])),
-        ));
+      margin: const EdgeInsets.all(50),
+      child: Center(
+          child: Column(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const <Widget>[
+            SizedBox(
+              child: CircularProgressIndicator(),
+              width: 60,
+              height: 60,
+            ),
+          ])),
+    ));
   }
 }

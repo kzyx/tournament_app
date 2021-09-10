@@ -24,11 +24,13 @@ class _PlayoffsYearDropdownState extends State<PlayoffsYearDropdown> {
       icon: const Icon(Icons.keyboard_arrow_down),
       iconSize: 24,
       elevation: 16,
-      style: const TextStyle(color: Colors.black, fontSize: 18),
+      style: const TextStyle(
+          color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
       underline: Container(
         height: 2,
         color: Colors.deepPurpleAccent,
       ),
+      dropdownColor: Colors.blue,
       onChanged: (String? newValue) {
         if (newValue == dropdownValue) {
           return;
