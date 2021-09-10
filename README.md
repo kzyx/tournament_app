@@ -4,9 +4,7 @@
 ###### *Page last updated Sept 10, 2021*
 ---
 ## Demo
-Adding habit screen        |  Navigating habit list
-:-------------------------:|:-------------------------:
-![](http://g.recordit.co/8OQMVvc6T5.gif)    |   ![](http://g.recordit.co/A3jacBz8kG.gif)
+![](demo.gif)
 ---
  # Features
  ## Requirements
@@ -28,5 +26,3 @@ Simply download the repo, run `flutter run` in cmd/terminal and you should be go
 # Libraries/Tools used
 - [GraphView](https://pub.dev/packages/graphview) for displaying the playoff bracket tree
 ---
-#### Random
-- Accidentally had a `final` keyword in the wrong place and ended up wasting an hour wondering why the state wasn't updating... LOL.
