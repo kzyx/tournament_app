@@ -39,46 +39,7 @@ class _TreeViewPageState extends State<TreeViewPage> {
       return loadingScreenWidget();
     } else {
       return Scaffold(
-          appBar: AppBar(
-            title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  const PlayoffsYearDropdown(),
-                  SizedBox(width: 30),
-                  FloatingActionButton.extended(
-                    label: Text("Prev\nRound", style: whiteBoldText),
-                    onPressed: () {
-                      // Decrements round number if possible
-                      setState(() {
-                        if (currentRound >= 2) {
-                          currentRound -= 1;
-                        }
-                      });
-                    },
-                    backgroundColor: Colors.orange,
-                  ),
-                  Container(
-                    child: Center(
-                        child: Text(currentRound.toString(),
-                            style: whiteBoldText)),
-                    width: 30.0,
-                  ),
-                  FloatingActionButton.extended(
-                    label: Text("Next\nRound", style: whiteBoldText),
-                    onPressed: () {
-                      // Increments round number if possible
-                      setState(() {
-                        if (currentRound <= 4) {
-                          currentRound += 1;
-                        }
-                      });
-                    },
-                    backgroundColor: Colors.orange,
-                  ),
-                ]),
-            centerTitle: true,
-          ),
+          appBar: buildTopAppBar(),
           body: Container(
               margin: const EdgeInsets.all(0.0),
               child: Column(
@@ -109,6 +70,49 @@ class _TreeViewPageState extends State<TreeViewPage> {
                 ],
               )));
     }
+  }
+
+  AppBar buildTopAppBar() {
+    return AppBar(
+          title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                const PlayoffsYearDropdown(),
+                SizedBox(width: 30),
+                FloatingActionButton.extended(
+                  label: Text("Prev\nRound", style: whiteBoldText),
+                  onPressed: () {
+                    // Decrements round number if possible
+                    setState(() {
+                      if (currentRound >= 2) {
+                        currentRound -= 1;
+                      }
+                    });
+                  },
+                  backgroundColor: Colors.orange,
+                ),
+                Container(
+                  child: Center(
+                      child: Text(currentRound.toString(),
+                          style: whiteBoldText)),
+                  width: 30.0,
+                ),
+                FloatingActionButton.extended(
+                  label: Text("Next\nRound", style: whiteBoldText),
+                  onPressed: () {
+                    // Increments round number if possible
+                    setState(() {
+                      if (currentRound <= 4) {
+                        currentRound += 1;
+                      }
+                    });
+                  },
+                  backgroundColor: Colors.orange,
+                ),
+              ]),
+          centerTitle: true,
+        );
   }
 
   @override
@@ -185,7 +189,6 @@ class _TreeViewPageState extends State<TreeViewPage> {
                   width: 70,
                   height: 70,
                 )
-                // Image.asset('assets/team_2.png'),
               ],
             ),
           )),
@@ -231,18 +234,17 @@ class _TreeViewPageState extends State<TreeViewPage> {
     PlayoffNode rootEChild2 = PlayoffNode(id: 7, series: seriesList[1]);
 
     // Conference Quarterfinals (8 series) //////////////
+    // Find the next elemnts of the tree by looking for the series in round 1
+    // with matching team names
     seriesList = _playoffs.rounds
         .firstWhere((r) => (r.number == 1))
         .seriesList
         .where((s) =>
             s.conference.name == 'Western' &&
-            (s.matchupTeams[0].team.name ==
-                    rootWChild1.series.matchupTeams[0].team.name ||
-                s.matchupTeams[0].team.name ==
-                    rootWChild1.series.matchupTeams[1].team.name ||
-                s.matchupTeams[1].team.name ==
-                    rootWChild1.series.matchupTeams[0].team.name ||
-                s.matchupTeams[1].team.name ==
+                Utils.atLeastOneStringPairMatch(
+                    s.matchupTeams[0].team.name,
+                    s.matchupTeams[1].team.name,
+                    rootWChild1.series.matchupTeams[0].team.name,
                     rootWChild1.series.matchupTeams[1].team.name))
         .toList();
     PlayoffNode rootWChild1Child1 = PlayoffNode(id: 8, series: seriesList[0]);
@@ -253,13 +255,10 @@ class _TreeViewPageState extends State<TreeViewPage> {
         .seriesList
         .where((s) =>
             s.conference.name == 'Western' &&
-            (s.matchupTeams[0].team.name ==
-                    rootWChild2.series.matchupTeams[0].team.name ||
-                s.matchupTeams[0].team.name ==
-                    rootWChild2.series.matchupTeams[1].team.name ||
-                s.matchupTeams[1].team.name ==
-                    rootWChild2.series.matchupTeams[0].team.name ||
-                s.matchupTeams[1].team.name ==
+                Utils.atLeastOneStringPairMatch(
+                    s.matchupTeams[0].team.name,
+                    s.matchupTeams[1].team.name,
+                    rootWChild2.series.matchupTeams[0].team.name,
                     rootWChild2.series.matchupTeams[1].team.name))
         .toList();
     PlayoffNode rootWChild2Child1 = PlayoffNode(id: 10, series: seriesList[0]);
@@ -270,13 +269,10 @@ class _TreeViewPageState extends State<TreeViewPage> {
         .seriesList
         .where((s) =>
             s.conference.name == 'Eastern' &&
-            (s.matchupTeams[0].team.name ==
-                    rootEChild1.series.matchupTeams[0].team.name ||
-                s.matchupTeams[0].team.name ==
-                    rootEChild1.series.matchupTeams[1].team.name ||
-                s.matchupTeams[1].team.name ==
-                    rootEChild1.series.matchupTeams[0].team.name ||
-                s.matchupTeams[1].team.name ==
+                Utils.atLeastOneStringPairMatch(
+                    s.matchupTeams[0].team.name,
+                    s.matchupTeams[1].team.name,
+                    rootEChild1.series.matchupTeams[0].team.name,
                     rootEChild1.series.matchupTeams[1].team.name))
         .toList();
     PlayoffNode rootEChild1Child1 = PlayoffNode(id: 12, series: seriesList[0]);
@@ -287,14 +283,11 @@ class _TreeViewPageState extends State<TreeViewPage> {
         .seriesList
         .where((s) =>
             s.conference.name == 'Eastern' &&
-            (s.matchupTeams[0].team.name ==
-                    rootEChild2.series.matchupTeams[0].team.name ||
-                s.matchupTeams[0].team.name ==
-                    rootEChild2.series.matchupTeams[1].team.name ||
-                s.matchupTeams[1].team.name ==
-                    rootEChild2.series.matchupTeams[0].team.name ||
-                s.matchupTeams[1].team.name ==
-                    rootEChild2.series.matchupTeams[1].team.name))
+            Utils.atLeastOneStringPairMatch(
+                s.matchupTeams[0].team.name,
+                s.matchupTeams[1].team.name,
+                rootEChild2.series.matchupTeams[0].team.name,
+                rootEChild2.series.matchupTeams[1].team.name))
         .toList();
     PlayoffNode rootEChild2Child1 = PlayoffNode(id: 14, series: seriesList[0]);
     PlayoffNode rootEChild2Child2 = PlayoffNode(id: 15, series: seriesList[1]);

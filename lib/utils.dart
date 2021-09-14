@@ -25,7 +25,7 @@ String consistentVersus(String string) {
   }
 }
 
-/// Takes a season as an [int] of the form YEAR1-YEAR2 (e.g. 20182019), and
+/// Takes a season as an [int] of the form YEAR1YEAR2 (e.g. 20182019), and
 /// makes a GET request to statsapi.web.nhl.com to get playoff data. Returns
 ///
 /// Needed since the API is inconsistent and gives strings with 'v' or 'vs'.
@@ -44,4 +44,11 @@ Future<Playoffs> fetchPlayoffs(int season) async {
     // If the server did not return a 200 OK response, then throw an exception.
     throw HttpException('Failed to load teams from statsapi.web.nhl.com');
   }
+}
+
+/// Takes four [String] strA, strB, strC, strD and returns true if
+/// one of {strA, strB} equals {strC, strD}
+bool atLeastOneStringPairMatch(
+    String strA, String strB, String strC, String strD) {
+  return (strA == strC) || (strA == strD) || (strB == strC) || (strB == strD);
 }
