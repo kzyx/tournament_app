@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:tournament_app/treeviewpage_widget.dart';
+import 'package:tournament_app/treeviewpage.dart';
 
 /// This widget is for the dropdown that shows options for playoff seasons
 class PlayoffsYearDropdown extends StatefulWidget {

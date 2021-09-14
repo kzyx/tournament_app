@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:graphview/GraphView.dart';
-import 'package:tournament_app/dropdown_widget.dart';
-import 'package:tournament_app/models.dart';
+import 'package:tournament_app/dropdown.dart';
+import 'package:tournament_app/models/all.dart';
 import 'package:tournament_app/utils.dart' as Utils;
 
 // Key allows Dropdown widget to call method inside TreeViewPage.

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tournament_app/treeviewpage_widget.dart';
+import 'package:tournament_app/treeviewpage.dart';
 
 void main() {
   runApp(MyApp());

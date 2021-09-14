@@ -1,7 +1,7 @@
 import 'dart:core';
 import 'dart:io';
 import 'dart:convert';
-import 'package:tournament_app/models.dart';
+import 'package:tournament_app/models/playoffs.dart';
 import 'package:http/http.dart' as http;
 
 /// Takes a [String] with a single 'v' somewhere in it, and changes that to a
