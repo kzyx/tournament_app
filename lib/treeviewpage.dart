@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:graphview/GraphView.dart';
 import 'package:tournament_app/dropdown.dart';
+import 'package:tournament_app/gamelist.dart';
 import 'package:tournament_app/models/all.dart';
 import 'package:tournament_app/utils.dart' as Utils;
 
@@ -74,45 +75,44 @@ class _TreeViewPageState extends State<TreeViewPage> {
 
   AppBar buildTopAppBar() {
     return AppBar(
-          title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                const PlayoffsYearDropdown(),
-                SizedBox(width: 30),
-                FloatingActionButton.extended(
-                  label: Text("Prev\nRound", style: whiteBoldText),
-                  onPressed: () {
-                    // Decrements round number if possible
-                    setState(() {
-                      if (currentRound >= 2) {
-                        currentRound -= 1;
-                      }
-                    });
-                  },
-                  backgroundColor: Colors.orange,
-                ),
-                Container(
-                  child: Center(
-                      child: Text(currentRound.toString(),
-                          style: whiteBoldText)),
-                  width: 30.0,
-                ),
-                FloatingActionButton.extended(
-                  label: Text("Next\nRound", style: whiteBoldText),
-                  onPressed: () {
-                    // Increments round number if possible
-                    setState(() {
-                      if (currentRound <= 4) {
-                        currentRound += 1;
-                      }
-                    });
-                  },
-                  backgroundColor: Colors.orange,
-                ),
-              ]),
-          centerTitle: true,
-        );
+      title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            const PlayoffsYearDropdown(),
+            SizedBox(width: 30),
+            FloatingActionButton.extended(
+              label: Text("Prev\nRound", style: whiteBoldText),
+              onPressed: () {
+                // Decrements round number if possible
+                setState(() {
+                  if (currentRound >= 2) {
+                    currentRound -= 1;
+                  }
+                });
+              },
+              backgroundColor: Colors.orange,
+            ),
+            Container(
+              child: Center(
+                  child: Text(currentRound.toString(), style: whiteBoldText)),
+              width: 30.0,
+            ),
+            FloatingActionButton.extended(
+              label: Text("Next\nRound", style: whiteBoldText),
+              onPressed: () {
+                // Increments round number if possible
+                setState(() {
+                  if (currentRound <= 4) {
+                    currentRound += 1;
+                  }
+                });
+              },
+              backgroundColor: Colors.orange,
+            ),
+          ]),
+      centerTitle: true,
+    );
   }
 
   @override
@@ -139,6 +139,52 @@ class _TreeViewPageState extends State<TreeViewPage> {
     return InkWell(
       onTap: () {
         // TODO: Could add some feature
+        final int numberOfGames =
+            playoffNode.series.currentGame.seriesSummary.gameNumber;
+
+        final List<String> entries =
+            List<String>.generate(numberOfGames, (i) => 'Game ${(i + 1)}');
+
+        showDialog(
+          context: context,
+          builder: (context) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(40)),
+              elevation: 16,
+              backgroundColor: Colors.orange,
+              child:
+              // Column(
+              //   mainAxisSize: MainAxisSize.min,
+              //   mainAxisAlignment: MainAxisAlignment.center,
+              //   children: <Widget>[
+              //     ListView.separated(
+              //       padding: const EdgeInsets.all(15),
+              //       shrinkWrap: true,
+              //       itemCount: entries.length,
+              //       itemBuilder: (BuildContext context, int index) {
+              //         return Container(
+              //           height: 40,
+              //           color: Colors.orange,
+              //           child: Column(
+              //             mainAxisAlignment: MainAxisAlignment.center,
+              //               children: <Widget>[
+              //                 Text(entries[index], style: whiteBoldText),
+              //         AnimatedOpacity(
+              //         opacity: (currentRound >= playoffNode.series.round) ? 1.00 : 0.00,
+              //         duration: const Duration(milliseconds: 500),
+              //         child: Text("ayo"))]),
+              //         );
+              //       },
+              //       separatorBuilder: (BuildContext context, int index) =>
+              //           const Divider(height: 10, color: Colors.white),
+              //     ),
+              //   ],
+              // ),
+              GameListPopup(series: playoffNode.series)
+            );
+          },
+        );
       },
       child: AnimatedOpacity(
           opacity: (currentRound >= playoffNode.series.round) ? 1.00 : 0.00,
@@ -241,11 +287,11 @@ class _TreeViewPageState extends State<TreeViewPage> {
         .seriesList
         .where((s) =>
             s.conference.name == 'Western' &&
-                Utils.atLeastOneStringPairMatch(
-                    s.matchupTeams[0].team.name,
-                    s.matchupTeams[1].team.name,
-                    rootWChild1.series.matchupTeams[0].team.name,
-                    rootWChild1.series.matchupTeams[1].team.name))
+            Utils.atLeastOneStringPairMatch(
+                s.matchupTeams[0].team.name,
+                s.matchupTeams[1].team.name,
+                rootWChild1.series.matchupTeams[0].team.name,
+                rootWChild1.series.matchupTeams[1].team.name))
         .toList();
     PlayoffNode rootWChild1Child1 = PlayoffNode(id: 8, series: seriesList[0]);
     PlayoffNode rootWChild1Child2 = PlayoffNode(id: 9, series: seriesList[1]);
@@ -255,11 +301,11 @@ class _TreeViewPageState extends State<TreeViewPage> {
         .seriesList
         .where((s) =>
             s.conference.name == 'Western' &&
-                Utils.atLeastOneStringPairMatch(
-                    s.matchupTeams[0].team.name,
-                    s.matchupTeams[1].team.name,
-                    rootWChild2.series.matchupTeams[0].team.name,
-                    rootWChild2.series.matchupTeams[1].team.name))
+            Utils.atLeastOneStringPairMatch(
+                s.matchupTeams[0].team.name,
+                s.matchupTeams[1].team.name,
+                rootWChild2.series.matchupTeams[0].team.name,
+                rootWChild2.series.matchupTeams[1].team.name))
         .toList();
     PlayoffNode rootWChild2Child1 = PlayoffNode(id: 10, series: seriesList[0]);
     PlayoffNode rootWChild2Child2 = PlayoffNode(id: 11, series: seriesList[1]);
@@ -269,11 +315,11 @@ class _TreeViewPageState extends State<TreeViewPage> {
         .seriesList
         .where((s) =>
             s.conference.name == 'Eastern' &&
-                Utils.atLeastOneStringPairMatch(
-                    s.matchupTeams[0].team.name,
-                    s.matchupTeams[1].team.name,
-                    rootEChild1.series.matchupTeams[0].team.name,
-                    rootEChild1.series.matchupTeams[1].team.name))
+            Utils.atLeastOneStringPairMatch(
+                s.matchupTeams[0].team.name,
+                s.matchupTeams[1].team.name,
+                rootEChild1.series.matchupTeams[0].team.name,
+                rootEChild1.series.matchupTeams[1].team.name))
         .toList();
     PlayoffNode rootEChild1Child1 = PlayoffNode(id: 12, series: seriesList[0]);
     PlayoffNode rootEChild1Child2 = PlayoffNode(id: 13, series: seriesList[1]);
