@@ -5,6 +5,7 @@ import 'package:tournament_app/dropdown.dart';
 import 'package:tournament_app/gamelist.dart';
 import 'package:tournament_app/models/all.dart';
 import 'package:tournament_app/utils.dart' as Utils;
+import 'package:tuple/tuple.dart';
 
 // Key allows Dropdown widget to call method inside TreeViewPage.
 // In some languages the use of global variables is frowned upon, so in the
@@ -32,6 +33,7 @@ class _TreeViewPageState extends State<TreeViewPage> {
   Graph _graph = Graph()..isTree = true;
   BuchheimWalkerConfiguration builder = BuchheimWalkerConfiguration();
   late Playoffs _playoffs;
+  late Map<Tuple2<int, int>, List<int>> _gamesMap;
   late TransformationController _controller;
 
   @override
@@ -138,6 +140,7 @@ class _TreeViewPageState extends State<TreeViewPage> {
   Widget rectangleWidget(PlayoffNode playoffNode) {
     return InkWell(
       onTap: () {
+
         // TODO: Could add some feature
         final int numberOfGames =
             playoffNode.series.currentGame.seriesSummary.gameNumber;
@@ -154,33 +157,6 @@ class _TreeViewPageState extends State<TreeViewPage> {
               elevation: 16,
               backgroundColor: Colors.orange,
               child:
-              // Column(
-              //   mainAxisSize: MainAxisSize.min,
-              //   mainAxisAlignment: MainAxisAlignment.center,
-              //   children: <Widget>[
-              //     ListView.separated(
-              //       padding: const EdgeInsets.all(15),
-              //       shrinkWrap: true,
-              //       itemCount: entries.length,
-              //       itemBuilder: (BuildContext context, int index) {
-              //         return Container(
-              //           height: 40,
-              //           color: Colors.orange,
-              //           child: Column(
-              //             mainAxisAlignment: MainAxisAlignment.center,
-              //               children: <Widget>[
-              //                 Text(entries[index], style: whiteBoldText),
-              //         AnimatedOpacity(
-              //         opacity: (currentRound >= playoffNode.series.round) ? 1.00 : 0.00,
-              //         duration: const Duration(milliseconds: 500),
-              //         child: Text("ayo"))]),
-              //         );
-              //       },
-              //       separatorBuilder: (BuildContext context, int index) =>
-              //           const Divider(height: 10, color: Colors.white),
-              //     ),
-              //   ],
-              // ),
               GameListPopup(series: playoffNode.series)
             );
           },
@@ -244,6 +220,7 @@ class _TreeViewPageState extends State<TreeViewPage> {
   /// This async function fetches the playoff data from the NHL API, and then
   /// generates a new [Graph], updating the _graph variable. Returns [void].
   void generateGraphFromPlayoffs(int season) async {
+    Utils.fetchGamesForSeries(season).then((value) => _gamesMap = value);
     _playoffs = await Utils.fetchPlayoffs(season);
 
     // In the below code, we generate nodes for each playoff series

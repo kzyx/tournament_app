@@ -31,7 +31,7 @@ class Playoffs {
   final String copyright;
   final int id;
   final String name;
-  final String season;
+  final int season;
   final int defaultRound;
   final List<RoundElement> rounds;
 
@@ -44,7 +44,7 @@ class Playoffs {
         copyright: json["copyright"],
         id: json["id"],
         name: json["name"],
-        season: json["season"],
+        season: int.parse(json["season"]),
         // defaultRound is not found in API calls for playoffs before 2012
         defaultRound:
             (json["defaultRound"] == null) ? -1 : json["defaultRound"],

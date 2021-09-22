@@ -46,17 +46,14 @@ class _GameListPopupState extends State<GameListPopup> {
 
   _GameListPopupState(this.series) {
     int numberOfGames = this.series.currentGame.seriesSummary.gameNumber;
-    _data =
-    List<Item>.generate(numberOfGames, (i) => Item(expandedValue: "test123",
-        headerValue: 'Game ${(i + 1)}'));
+    _data = List<Item>.generate(numberOfGames,
+        (i) => Item(expandedValue: "test123", headerValue: 'Game ${(i + 1)}'));
 
     // _data = List<Item>.generate((i))
     // for (int i = 0; i < numberOfGames; i++) {
     //   _data
     // }
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -82,21 +79,33 @@ class _GameListPopupState extends State<GameListPopup> {
               title: Text(item.headerValue, style: whiteBoldText),
             );
           },
-          body: ListTile(
-              title: Text(item.expandedValue),
-              subtitle: const Text(
-                  'To delete this panel, tap the trash can icon'),
-              trailing: const Icon(Icons.delete),
-              onTap: () {
-                setState(() {
-                  _data.removeWhere((Item currentItem) => item == currentItem);
-                });
-              }
-          ),
+          body: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                ListTile(
+                    title: Text(item.expandedValue),
+                    subtitle: const Text(
+                        'ayon'),
+                    trailing: const Icon(Icons.video_collection),
+                    onTap: () {
+
+                    }),
+                ListTile(
+                    title: Text("Watch highlights", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
+                    // subtitle: const Text(
+                    //     'To delete this panel, tap the trash can icon'),
+                    trailing: const Icon(Icons.video_collection),
+                    onTap: () {
+                      setState(() {
+                        _data.removeWhere(
+                                (Item currentItem) => item == currentItem);
+                      });
+                    })
+              ]),
           isExpanded: item.isExpanded,
         );
       }).toList(),
     );
   }
-
 }
