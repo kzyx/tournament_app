@@ -121,6 +121,7 @@ class _TreeViewPageState extends State<TreeViewPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance!.addPostFrameCallback((_) {
+      Utils.fetchGameNumbers(20182019).then((value) => generateGameData(value));
       // Initially, will generate graph for 2018-2019 season
       generateGraphFromPlayoffs(20182019);
     });
@@ -217,10 +218,19 @@ class _TreeViewPageState extends State<TreeViewPage> {
     );
   }
 
+  void generateGameData(Map<Tuple2<int, int>, List<int>> gameNumbers) {
+
+    _gamesMap = gameNumbers;
+
+
+  }
+
+
   /// This async function fetches the playoff data from the NHL API, and then
   /// generates a new [Graph], updating the _graph variable. Returns [void].
   void generateGraphFromPlayoffs(int season) async {
-    Utils.fetchGamesForSeries(season).then((value) => _gamesMap = value);
+    // Async fetch both list of games and playoff bracket data
+    // Await the playoff bracket data since that is essential for the graph
     _playoffs = await Utils.fetchPlayoffs(season);
 
     // In the below code, we generate nodes for each playoff series

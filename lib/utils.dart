@@ -54,7 +54,7 @@ Future<Playoffs> fetchPlayoffs(int season) async {
 /// makes a GET request to statsapi.web.nhl.com to get playoff data. Returns
 ///
 /// Needed since the API is inconsistent and gives strings with 'v' or 'vs'.
-Future<Map<Tuple2<int, int>, List<int>>> fetchGamesForSeries(int season) async {
+Future<Map<Tuple2<int, int>, List<int>>> fetchGameNumbers(int season) async {
   const baseUrl = 'https://statsapi.web.nhl.com/api/v1/schedule';
   final additionalUrl = '?season=$season&gameType=P'; //&teamId=$teamId';
   final response = await http.get(Uri.parse(baseUrl + additionalUrl));
@@ -95,6 +95,55 @@ Future<Map<Tuple2<int, int>, List<int>>> fetchGamesForSeries(int season) async {
     throw HttpException('Failed to load game data from statsapi.web.nhl.com');
   }
 }
+
+
+/// Takes a season as an [int] of the form YEAR1YEAR2 (e.g. 20182019), and
+/// makes a GET request to statsapi.web.nhl.com to get playoff data. Returns
+///
+/// Needed since the API is inconsistent and gives strings with 'v' or 'vs'.
+Future<Map<Tuple2<int, int>, List<int>>> fetchGameData(int game) async {
+  const baseUrl = 'https://statsapi.web.nhl.com/api/v1/game';
+  final additionalUrl = '/$game/linescore';
+  final response = await http.get(Uri.parse(baseUrl + additionalUrl));
+
+  if (response.statusCode == 200) {
+    // If the server did return a 200 OK response, then parse the JSON.
+    Map<String, dynamic> jsonMap = jsonDecode(response.body);
+
+    List<dynamic> dates = jsonMap["dates"];
+    // maps (teamId1, teamId2) -> List of games played
+    Map<Tuple2<int, int>, List<int>> output = {};
+    dates.forEach((element) {
+      List<dynamic> gameList = element["games"];
+      // Map<Tuple2<int, int>, List<int>> subMap = {};
+      gameList.forEach((element) {
+        int homeId = element["teams"]["home"]["team"]["id"];
+        int awayId = element["teams"]["away"]["team"]["id"];
+        int minId = min(homeId, awayId);
+        int maxId = max(homeId, awayId);
+
+        Tuple2<int, int> key = Tuple2(minId, maxId);
+        int val = element["gamePk"];
+        if (output.containsKey(key)) {
+          output[key]?.add(val);
+        } else {
+          output[key] = <int>[val];
+        }
+      });
+
+    });
+
+    // Print statement for debug
+    // output.forEach((k, v) => print("Key : ${k.item1}, ${k.item2}, Value : ${v.toString()}"));
+
+    return output;
+  } else {
+    // If the server did not return a 200 OK response, then throw an exception.
+    throw HttpException('Failed to load game data from statsapi.web.nhl.com');
+  }
+}
+
+
 
 /// Takes four [String] strA, strB, strC, strD and returns true if
 /// one of {strA, strB} equals {strC, strD}
