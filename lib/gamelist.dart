@@ -45,7 +45,7 @@ class _GameListPopupState extends State<GameListPopup> {
   late List<Item> _data;
 
   _GameListPopupState(this.series) {
-    int numberOfGames = this.series.currentGame.seriesSummary.gameNumber;
+    int numberOfGames = this.series.teamOneGamesWon + this.series.teamTwoGamesWon;
     _data = List<Item>.generate(numberOfGames,
         (i) => Item(expandedValue: "test123", headerValue: 'Game ${(i + 1)}'));
 

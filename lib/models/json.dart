@@ -4,60 +4,79 @@
 
 import 'package:meta/meta.dart';
 import 'dart:convert';
+import 'package:graphview/GraphView.dart';
+
+/// Represents node in graph/tree generated using Playoffs object
+class PlayoffNode extends Node {
+  late Series series;
+  late int roundNum;
+
+  PlayoffNode({required int id, required Series series, required int roundNum}) : super.Id(id) {
+    this.series = series;
+    this.roundNum = roundNum;
+  }
+}
 
 class PlayoffSeason {
   PlayoffSeason({
-    required this.season,
+    required this.seasonNum,
     required this.rounds,
   });
 
-  int season;
+  int seasonNum;
   List<Round> rounds;
 
-  factory PlayoffSeason.fromRawJson(String str) => PlayoffSeason.fromJson(json.decode(str));
+  factory PlayoffSeason.fromRawJson(String str) =>
+      PlayoffSeason.fromJson(json.decode(str));
 
   String toRawJson() => json.encode(toJson());
 
   factory PlayoffSeason.fromJson(Map<String, dynamic> json) => PlayoffSeason(
-    season: json["season"],
-    rounds: List<Round>.from(json["rounds"].map((x) => Round.fromJson(x))),
-  );
+        seasonNum: int.parse(json["seasonNum"]),
+        rounds: List<Round>.from(json["rounds"].map((x) => Round.fromJson(x))),
+      );
 
   Map<String, dynamic> toJson() => {
-    "season": season,
-    "rounds": List<dynamic>.from(rounds.map((x) => x.toJson())),
-  };
+        "seasonNum": seasonNum.toString(),
+        "rounds": List<dynamic>.from(rounds.map((x) => x.toJson())),
+      };
 }
 
 class Round {
   Round({
     required this.roundNum,
-    required this.name,
+    required this.roundName,
     required this.seriesList,
   });
 
   int roundNum;
-  Name name;
-  List<SeriesList> seriesList;
+  Name roundName;
+  List<Series> seriesList;
 
   factory Round.fromRawJson(String str) => Round.fromJson(json.decode(str));
 
   String toRawJson() => json.encode(toJson());
 
   factory Round.fromJson(Map<String, dynamic> json) => Round(
-    roundNum: json["roundNum"],
-    name: nameValues.map[json["name"]]!,
-    seriesList: List<SeriesList>.from(json["seriesList"].map((x) => SeriesList.fromJson(x))),
-  );
+        roundNum: json["roundNum"],
+        roundName: nameValues.map[json["roundName"]]!,
+        seriesList: List<Series>.from(
+            json["seriesList"].map((x) => Series.fromJson(x))),
+      );
 
   Map<String, dynamic> toJson() => {
-    "roundNum": roundNum,
-    "name": nameValues.reverse[name],
-    "seriesList": List<dynamic>.from(seriesList.map((x) => x.toJson())),
-  };
+        "roundNum": roundNum,
+        "roundName": nameValues.reverse[roundName],
+        "seriesList": List<dynamic>.from(seriesList.map((x) => x.toJson())),
+      };
 }
 
-enum Name { CONFERENCE_QUARTERFINALS, CONFERENCE_SEMIFINALS, CONFERENCE_FINALS, STANLEY_CUP_FINALS }
+enum Name {
+  CONFERENCE_QUARTERFINALS,
+  CONFERENCE_SEMIFINALS,
+  CONFERENCE_FINALS,
+  STANLEY_CUP_FINALS
+}
 
 final nameValues = EnumValues({
   "Conference Finals": Name.CONFERENCE_FINALS,
@@ -66,8 +85,12 @@ final nameValues = EnumValues({
   "Stanley Cup Finals": Name.STANLEY_CUP_FINALS
 });
 
-class SeriesList {
-  SeriesList({
+class Series {
+  Series({
+    required this.shortName,
+    required this.longName,
+    required this.shortResult,
+    required this.longResult,
     required this.teamOne,
     required this.teamTwo,
     required this.teamOneGamesWon,
@@ -75,7 +98,10 @@ class SeriesList {
     required this.conference,
     required this.games,
   });
-
+  String shortName;
+  String longName;
+  String shortResult;
+  String longResult;
   int teamOne;
   int teamTwo;
   int teamOneGamesWon;
@@ -83,27 +109,31 @@ class SeriesList {
   Conference conference;
   List<Game> games;
 
-  factory SeriesList.fromRawJson(String str) => SeriesList.fromJson(json.decode(str));
+  factory Series.fromRawJson(String str) => Series.fromJson(json.decode(str));
 
   String toRawJson() => json.encode(toJson());
 
-  factory SeriesList.fromJson(Map<String, dynamic> json) => SeriesList(
-    teamOne: json["teamOne"],
-    teamTwo: json["teamTwo"],
-    teamOneGamesWon: json["teamOneGamesWon"],
-    teamTwoGamesWon: json["teamTwoGamesWon"],
-    conference: conferenceValues.map[json["conference"]]!,
-    games: List<Game>.from(json["games"].map((x) => Game.fromJson(x))),
-  );
+  factory Series.fromJson(Map<String, dynamic> json) => Series(
+        shortName: json["shortName"],
+        longName: json["longName"],
+        shortResult: json["shortResult"],
+        longResult: json["longResult"],
+        teamOne: json["teamOne"],
+        teamTwo: json["teamTwo"],
+        teamOneGamesWon: json["teamOneGamesWon"],
+        teamTwoGamesWon: json["teamTwoGamesWon"],
+        conference: conferenceValues.map[json["conference"]]!,
+        games: List<Game>.from(json["games"].map((x) => Game.fromJson(x))),
+      );
 
   Map<String, dynamic> toJson() => {
-    "teamOne": teamOne,
-    "teamTwo": teamTwo,
-    "teamOneGamesWon": teamOneGamesWon,
-    "teamTwoGamesWon": teamTwoGamesWon,
-    "conference": conferenceValues.reverse[conference],
-    "games": List<dynamic>.from(games.map((x) => x.toJson())),
-  };
+        "teamOne": teamOne,
+        "teamTwo": teamTwo,
+        "teamOneGamesWon": teamOneGamesWon,
+        "teamTwoGamesWon": teamTwoGamesWon,
+        "conference": conferenceValues.reverse[conference],
+        "games": List<dynamic>.from(games.map((x) => x.toJson())),
+      };
 }
 
 enum Conference { EASTERN, N_A, WESTERN }
@@ -119,7 +149,7 @@ class Game {
     required this.gameId,
     required this.teamGameStatOne,
     required this.teamGameStatTwo,
-    required this.gameVictorId,
+    required this.victorId,
     required this.homeTeamId,
     required this.venue,
     required this.highlights,
@@ -128,7 +158,7 @@ class Game {
   int gameId;
   TeamGameStat teamGameStatOne;
   TeamGameStat teamGameStatTwo;
-  int gameVictorId;
+  int victorId;
   int homeTeamId;
   String venue;
   String highlights;
@@ -138,24 +168,24 @@ class Game {
   String toRawJson() => json.encode(toJson());
 
   factory Game.fromJson(Map<String, dynamic> json) => Game(
-    gameId: json["gameId"],
-    teamGameStatOne: TeamGameStat.fromJson(json["teamGameStatOne"]),
-    teamGameStatTwo: TeamGameStat.fromJson(json["teamGameStatTwo"]),
-    gameVictorId: json["gameVictorId"],
-    homeTeamId: json["homeTeamId"],
-    venue: json["venue"],
-    highlights: json["highlights"],
-  );
+        gameId: json["gameId"],
+        teamGameStatOne: TeamGameStat.fromJson(json["teamGameStatOne"]),
+        teamGameStatTwo: TeamGameStat.fromJson(json["teamGameStatTwo"]),
+        victorId: json["victorId"],
+        homeTeamId: json["homeTeamId"],
+        venue: json["venue"],
+        highlights: json["highlights"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "gameId": gameId,
-    "teamGameStatOne": teamGameStatOne.toJson(),
-    "teamGameStatTwo": teamGameStatTwo.toJson(),
-    "gameVictorId": gameVictorId,
-    "homeTeamId": homeTeamId,
-    "venue": venue,
-    "highlights": highlights,
-  };
+        "gameId": gameId,
+        "teamGameStatOne": teamGameStatOne.toJson(),
+        "teamGameStatTwo": teamGameStatTwo.toJson(),
+        "victorId": victorId,
+        "homeTeamId": homeTeamId,
+        "venue": venue,
+        "highlights": highlights,
+      };
 }
 
 class TeamGameStat {
@@ -167,31 +197,31 @@ class TeamGameStat {
   int goalsAttempted;
   int goalsScored;
 
-  factory TeamGameStat.fromRawJson(String str) => TeamGameStat.fromJson(json.decode(str));
+  factory TeamGameStat.fromRawJson(String str) =>
+      TeamGameStat.fromJson(json.decode(str));
 
   String toRawJson() => json.encode(toJson());
 
   factory TeamGameStat.fromJson(Map<String, dynamic> json) => TeamGameStat(
-    goalsAttempted: json["goalsAttempted"],
-    goalsScored: json["goalsScored"],
-  );
+        goalsAttempted: json["goalsAttempted"],
+        goalsScored: json["goalsScored"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "goalsAttempted": goalsAttempted,
-    "goalsScored": goalsScored,
-  };
+        "goalsAttempted": goalsAttempted,
+        "goalsScored": goalsScored,
+      };
 }
 
 class EnumValues<T> {
   Map<String, T> map;
   late Map<T, String> reverseMap;
 
-  EnumValues(this.map);
+  EnumValues(this.map) {
+    reverseMap = map.map((k, v) => MapEntry(v, k));
+  }
 
   Map<T, String> get reverse {
-    if (reverseMap == null) {
-      reverseMap = map.map((k, v) => new MapEntry(v, k));
-    }
     return reverseMap;
   }
 }

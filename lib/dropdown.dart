@@ -14,11 +14,18 @@ class PlayoffsYearDropdown extends StatefulWidget {
 class _PlayoffsYearDropdownState extends State<PlayoffsYearDropdown> {
   // Default season value is 2018-2019. Options go from 2013-2014 to 2018-2019.
   String dropdownValue = '2018-2019';
-  final List<String> playoffsYear =
-      List<String>.generate(6, (i) => '20${(i + 13)}' + '-20${(i + 14)}');
+
+  List<String> playoffsYear = ['2018-2019'];
 
   @override
   Widget build(BuildContext context) {
+    if (treeViewPageKey.currentState!.finishedLoading) {
+      playoffsYear = [];
+      List<int> dropdownIntList = treeViewPageKey.currentState!.getDropdownYearsList();
+      dropdownIntList.forEach((e) => playoffsYear.add(e.toString().substring(0, 4) + '-' + e.toString().substring(4)));
+
+      playoffsYear.forEach((e) => print(e));
+    }
     return DropdownButton<String>(
       value: dropdownValue,
       icon: const Icon(Icons.keyboard_arrow_down),
