@@ -24,7 +24,7 @@ The initial version of this app queried the [statsapi.web.nhl.com](https://gitla
 ---
 # Installation
 To download on Android, simply check out the [current release](https://github.com/kzyx/tournament_app/releases/tag/v1.0.0).
-Alternatively (this is actually the only choice for iOS). simply download the repo, and [install flutter](https://flutter.dev/docs/get-started/install) if you don't already have it installed. Run `flutter run` in cmd/terminal, and you should be good to go!
+Alternatively (this is actually the only choice for iOS), simply download the repo, and [install Flutter](https://flutter.dev/docs/get-started/install) if you don't already have it installed. Run `flutter run` in cmd/terminal, and you should be good to go!
 
 ---
 # Libraries/Tools used
