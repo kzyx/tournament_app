@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:graphview/GraphView.dart';
 import 'package:tournament_app/dropdown.dart';
-import 'package:tournament_app/gamelist.dart';
+import 'package:tournament_app/series_popup.dart';
 import 'package:tournament_app/models/all.dart';
 import 'package:tournament_app/utils.dart' as Utils;
 import 'package:tuple/tuple.dart';
@@ -10,7 +10,7 @@ import 'package:tuple/tuple.dart';
 // Key allows Dropdown widget to call method inside TreeViewPage.
 // In some languages the use of global variables is frowned upon, so in the
 // future it could be advisable to replace this.
-GlobalKey<_TreeViewPageState> treeViewPageKey = GlobalKey();
+GlobalKey<_TournamentBracketState> treeViewPageKey = GlobalKey();
 
 // Some default text styles
 const TextStyle whiteBoldText =
@@ -19,21 +19,20 @@ const TextStyle blackBoldText =
     TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.black);
 
 /// This widget is for the page with the tree view playoff bracket
-class TreeViewPage extends StatefulWidget {
-  const TreeViewPage({Key? key}) : super(key: key);
+class TournamentBracket extends StatefulWidget {
+  const TournamentBracket({Key? key}) : super(key: key);
 
   @override
-  _TreeViewPageState createState() => _TreeViewPageState();
+  _TournamentBracketState createState() => _TournamentBracketState();
 }
 
 /// This is the private State class for the TreeViewPage
-class _TreeViewPageState extends State<TreeViewPage> {
+class _TournamentBracketState extends State<TournamentBracket> {
   bool finishedLoading = false; // Boolean representing whether API call done
   int currentRound = 3; // Set to three by default as per instructions
   Graph _graph = Graph()..isTree = true;
   BuchheimWalkerConfiguration builder = BuchheimWalkerConfiguration();
   late final List<PlayoffSeason> _playoffs;
-  late final Map<int, String> _teamIdToName;
   late TransformationController _controller;
 
   @override
@@ -121,8 +120,6 @@ class _TreeViewPageState extends State<TreeViewPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance!.addPostFrameCallback((_) {
-      // Utils.fetchGameNumbers(20182019).then((value) => generateGameData(value));
-      // Initially, will generate graph for 2018-2019 season
       firstTimeLoad();
     });
     // Set up some graph options
@@ -141,25 +138,15 @@ class _TreeViewPageState extends State<TreeViewPage> {
   Widget rectangleWidget(PlayoffNode playoffNode) {
     return InkWell(
       onTap: () {
-
-        // TODO: Could add some feature
-        final int numberOfGames =
-            playoffNode.series.teamOneGamesWon + playoffNode.series.teamTwoGamesWon;
-
-        final List<String> entries =
-            List<String>.generate(numberOfGames, (i) => 'Game ${(i + 1)}');
-
         showDialog(
           context: context,
           builder: (context) {
             return Dialog(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(40)),
-              elevation: 16,
-              backgroundColor: Colors.orange,
-              child:
-              GameListPopup(series: playoffNode.series)
-            );
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(40)),
+                elevation: 16,
+                backgroundColor: Colors.orange,
+                child: SeriesPopup(series: playoffNode.series));
           },
         );
       },
@@ -180,16 +167,15 @@ class _TreeViewPageState extends State<TreeViewPage> {
                 Image(
                   image: finishedLoading
                       ? AssetImage(
-                          "assets/team_${playoffNode.series.teamOne}.png")
-                      : AssetImage("assets/blank.png"),
+                          "assets/img/team_${playoffNode.series.teamOne}.png")
+                      : AssetImage("assets/img/blank.png"),
                   width: 70,
                   height: 70,
                 ),
                 Column(children: <Widget>[
                   Text(
                       finishedLoading
-                          ? Utils.consistentVersus(
-                              playoffNode.series.shortName)
+                          ? Utils.consistentVersus(playoffNode.series.shortName)
                           : 'Loading...',
                       style: whiteBoldText),
                   AnimatedOpacity(
@@ -198,17 +184,15 @@ class _TreeViewPageState extends State<TreeViewPage> {
                         ? 1.00
                         : 0.00,
                     duration: const Duration(milliseconds: 500),
-                    child: Text(
-                        playoffNode
-                            .series.shortResult,
+                    child: Text(playoffNode.series.shortResult,
                         style: whiteBoldText),
                   )
                 ]),
                 Image(
                   image: finishedLoading
                       ? AssetImage(
-                          "assets/team_${playoffNode.series.teamTwo}.png")
-                      : AssetImage("assets/blank.png"),
+                          "assets/img/team_${playoffNode.series.teamTwo}.png")
+                      : AssetImage("assets/img/blank.png"),
                   width: 70,
                   height: 70,
                 )
@@ -220,10 +204,8 @@ class _TreeViewPageState extends State<TreeViewPage> {
 
   void firstTimeLoad() async {
     _playoffs = await Utils.loadAllPlayoffData();
-    _teamIdToName = await Utils.loadTeamData();
     generateGraphFromPlayoffs(20182019);
   }
-
 
   /// This async function fetches the playoff data from the NHL API, and then
   /// generates a new [Graph], updating the _graph variable. Returns [void].
@@ -232,101 +214,126 @@ class _TreeViewPageState extends State<TreeViewPage> {
     // Await the playoff bracket data since that is essential for the graph
 
     int idx = _playoffs.indexWhere((s) => s.seasonNum == season);
-    print(idx);
+
     // In the below code, we generate nodes for each playoff series
     // Stanley Cup Finals (1 series) ////////////////////
-    Series series =
-        _playoffs[idx].rounds.firstWhere((r) => (r.roundNum == 4)).seriesList[0];
+    Series series = _playoffs[idx]
+        .rounds
+        .firstWhere((r) => (r.roundNum == 4))
+        .seriesList[0];
     PlayoffNode root = PlayoffNode(id: 1, series: series, roundNum: 4);
 
     // Conference Finals (2 series) /////////////////////
     List<Series> seriesList =
         _playoffs[idx].rounds.firstWhere((r) => (r.roundNum == 3)).seriesList;
-    seriesList.forEach((s) => print(s.conference));
     PlayoffNode rootW = PlayoffNode(
         id: 2,
-        series: seriesList.firstWhere((s) => s.conference == Conference.WESTERN),
+        series:
+            seriesList.firstWhere((s) => s.conference == Conference.WESTERN),
         roundNum: 3);
     PlayoffNode rootE = PlayoffNode(
         id: 3,
-        series: seriesList.firstWhere((s) => s.conference == Conference.EASTERN),
+        series:
+            seriesList.firstWhere((s) => s.conference == Conference.EASTERN),
         roundNum: 3);
 
     // Conference Semifinals (4 series) /////////////////
-    seriesList = _playoffs[idx].rounds
-        .firstWhere((r) => (r.roundNum == 2))
-        .seriesList
-        .where((s) => s.conference == Conference.WESTERN)
-        .toList();
-    PlayoffNode rootWChild1 = PlayoffNode(id: 4, series: seriesList[0], roundNum: 2);
-    PlayoffNode rootWChild2 = PlayoffNode(id: 5, series: seriesList[1], roundNum: 2);
-
-    seriesList = _playoffs[idx].rounds
-        .firstWhere((r) => (r.roundNum == 2))
-        .seriesList
-        .where((s) => s.conference == Conference.EASTERN)
-        .toList();
-    PlayoffNode rootEChild1 = PlayoffNode(id: 6, series: seriesList[0], roundNum: 2);
-    PlayoffNode rootEChild2 = PlayoffNode(id: 7, series: seriesList[1], roundNum: 2);
+    int idx_w1 =
+        _playoffs[idx].getIndexOfMatchingSeries(2, rootW.series.teamOne);
+    int idx_w2 =
+        _playoffs[idx].getIndexOfMatchingSeries(2, rootW.series.teamTwo);
+    int idx_e1 =
+        _playoffs[idx].getIndexOfMatchingSeries(2, rootE.series.teamOne);
+    int idx_e2 =
+        _playoffs[idx].getIndexOfMatchingSeries(2, rootE.series.teamTwo);
+    Series s_w1 = _playoffs[idx]
+        .rounds
+        .firstWhere((r) => r.roundNum == 2)
+        .seriesList[idx_w1];
+    Series s_w2 = _playoffs[idx]
+        .rounds
+        .firstWhere((r) => r.roundNum == 2)
+        .seriesList[idx_w2];
+    Series s_e1 = _playoffs[idx]
+        .rounds
+        .firstWhere((r) => r.roundNum == 2)
+        .seriesList[idx_e1];
+    Series s_e2 = _playoffs[idx]
+        .rounds
+        .firstWhere((r) => r.roundNum == 2)
+        .seriesList[idx_e2];
+    PlayoffNode rootWChild1 = PlayoffNode(id: 4, series: s_w1, roundNum: 2);
+    PlayoffNode rootWChild2 = PlayoffNode(id: 5, series: s_w2, roundNum: 2);
+    PlayoffNode rootEChild1 = PlayoffNode(id: 6, series: s_e1, roundNum: 2);
+    PlayoffNode rootEChild2 = PlayoffNode(id: 7, series: s_e2, roundNum: 2);
 
     // Conference Quarterfinals (8 series) //////////////
     // Find the next elemnts of the tree by looking for the series in round 1
     // with matching team names
-    seriesList = _playoffs[idx].rounds
-        .firstWhere((r) => (r.roundNum == 1))
-        .seriesList
-        .where((s) =>
-            s.conference == Conference.WESTERN &&
-            Utils.atLeastOneIntPairMatch(
-                s.teamOne,
-                s.teamTwo,
-                rootWChild1.series.teamOne,
-                rootWChild1.series.teamTwo))
-        .toList();
-    PlayoffNode rootWChild1Child1 = PlayoffNode(id: 8, series: seriesList[0], roundNum: 1);
-    PlayoffNode rootWChild1Child2 = PlayoffNode(id: 9, series: seriesList[1], roundNum: 1);
-
-    seriesList = _playoffs[idx].rounds
-        .firstWhere((r) => (r.roundNum == 1))
-        .seriesList
-        .where((s) =>
-            s.conference == Conference.WESTERN &&
-                Utils.atLeastOneIntPairMatch(
-                    s.teamOne,
-                    s.teamTwo,
-                rootWChild2.series.teamOne,
-                rootWChild2.series.teamTwo))
-        .toList();
-    PlayoffNode rootWChild2Child1 = PlayoffNode(id: 10, series: seriesList[0], roundNum: 1);
-    PlayoffNode rootWChild2Child2 = PlayoffNode(id: 11, series: seriesList[1], roundNum: 1);
-
-    seriesList = _playoffs[idx].rounds
-        .firstWhere((r) => (r.roundNum == 1))
-        .seriesList
-        .where((s) =>
-            s.conference == Conference.EASTERN &&
-                Utils.atLeastOneIntPairMatch(
-                    s.teamOne,
-                    s.teamTwo,
-                rootEChild1.series.teamOne,
-                rootEChild1.series.teamTwo))
-        .toList();
-    PlayoffNode rootEChild1Child1 = PlayoffNode(id: 12, series: seriesList[0], roundNum: 1);
-    PlayoffNode rootEChild1Child2 = PlayoffNode(id: 13, series: seriesList[1], roundNum: 1);
-
-    seriesList = _playoffs[idx].rounds
-        .firstWhere((r) => (r.roundNum == 1))
-        .seriesList
-        .where((s) =>
-            s.conference == Conference.EASTERN &&
-                Utils.atLeastOneIntPairMatch(
-                    s.teamOne,
-                    s.teamTwo,
-                rootEChild2.series.teamOne,
-                rootEChild2.series.teamTwo))
-        .toList();
-    PlayoffNode rootEChild2Child1 = PlayoffNode(id: 14, series: seriesList[0], roundNum: 1);
-    PlayoffNode rootEChild2Child2 = PlayoffNode(id: 15, series: seriesList[1], roundNum: 1);
+    int idx_w11 =
+        _playoffs[idx].getIndexOfMatchingSeries(1, rootWChild1.series.teamOne);
+    int idx_w12 =
+        _playoffs[idx].getIndexOfMatchingSeries(1, rootWChild1.series.teamTwo);
+    int idx_w21 =
+        _playoffs[idx].getIndexOfMatchingSeries(1, rootWChild2.series.teamOne);
+    int idx_w22 =
+        _playoffs[idx].getIndexOfMatchingSeries(1, rootWChild2.series.teamTwo);
+    int idx_e11 =
+        _playoffs[idx].getIndexOfMatchingSeries(1, rootEChild1.series.teamOne);
+    int idx_e12 =
+        _playoffs[idx].getIndexOfMatchingSeries(1, rootEChild1.series.teamTwo);
+    int idx_e21 =
+        _playoffs[idx].getIndexOfMatchingSeries(1, rootEChild2.series.teamOne);
+    int idx_e22 =
+        _playoffs[idx].getIndexOfMatchingSeries(1, rootEChild2.series.teamTwo);
+    Series s_w11 = _playoffs[idx]
+        .rounds
+        .firstWhere((r) => r.roundNum == 1)
+        .seriesList[idx_w11];
+    Series s_w12 = _playoffs[idx]
+        .rounds
+        .firstWhere((r) => r.roundNum == 1)
+        .seriesList[idx_w12];
+    Series s_w21 = _playoffs[idx]
+        .rounds
+        .firstWhere((r) => r.roundNum == 1)
+        .seriesList[idx_w21];
+    Series s_w22 = _playoffs[idx]
+        .rounds
+        .firstWhere((r) => r.roundNum == 1)
+        .seriesList[idx_w22];
+    Series s_e11 = _playoffs[idx]
+        .rounds
+        .firstWhere((r) => r.roundNum == 1)
+        .seriesList[idx_e11];
+    Series s_e12 = _playoffs[idx]
+        .rounds
+        .firstWhere((r) => r.roundNum == 1)
+        .seriesList[idx_e12];
+    Series s_e21 = _playoffs[idx]
+        .rounds
+        .firstWhere((r) => r.roundNum == 1)
+        .seriesList[idx_e21];
+    Series s_e22 = _playoffs[idx]
+        .rounds
+        .firstWhere((r) => r.roundNum == 1)
+        .seriesList[idx_e22];
+    PlayoffNode rootWChild1Child1 =
+        PlayoffNode(id: 8, series: s_w11, roundNum: 1);
+    PlayoffNode rootWChild1Child2 =
+        PlayoffNode(id: 9, series: s_w12, roundNum: 1);
+    PlayoffNode rootWChild2Child1 =
+        PlayoffNode(id: 10, series: s_w21, roundNum: 1);
+    PlayoffNode rootWChild2Child2 =
+        PlayoffNode(id: 11, series: s_w22, roundNum: 1);
+    PlayoffNode rootEChild1Child1 =
+        PlayoffNode(id: 12, series: s_e11, roundNum: 1);
+    PlayoffNode rootEChild1Child2 =
+        PlayoffNode(id: 13, series: s_e12, roundNum: 1);
+    PlayoffNode rootEChild2Child1 =
+        PlayoffNode(id: 14, series: s_e21, roundNum: 1);
+    PlayoffNode rootEChild2Child2 =
+        PlayoffNode(id: 15, series: s_e22, roundNum: 1);
 
     // In the below code, we generate a new graph, storing in _graph
     _graph = Graph();
@@ -381,7 +388,8 @@ class _TreeViewPageState extends State<TreeViewPage> {
     ));
   }
 
-  List<int> getDropdownYearsList() {
+  /// Returns list of all the playoffs
+  List<int> getAllPlayoffYearNumbers() {
     List<int> output = [];
     for (int i = 0; i < _playoffs.length; i++) {
       output.add(_playoffs[i].seasonNum);

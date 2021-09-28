@@ -8,16 +8,10 @@ import os, sys
 
 #####################################################################
 # Database class declarations
-class SeasonEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, Season):
-            return obj.__dict__   
-        return json.JSONEncoder.default(self, obj)
-
 class Output:
     output = []
 
-    
+
 class Season:
     seasonNum = str(20182019)
     rounds = [] # array of playoff rounds
@@ -49,11 +43,12 @@ class Series:
     conference = ""
     games = []
 
+
 class TeamGameStat:
     goalsAttempted = -1
     goalsScored = -1
     # scoringPlayers = [] # TODO: Could add later on
-        # self.scoringPlayers = scoringPlayers
+
 
 class Game:
     gameId = -1
@@ -72,19 +67,23 @@ class Game:
         self.venue = venue
         self.highlights = highlights
 
-# TODO: Could add this class in the future
+
 class Team:
     teamId = -1
     teamName = ""
     teamConference = ""
+    # TODO: Could add players, etc
+
 
 class OutputTeam:
     output = []
+
 
 class TeamSchema(Schema):
     teamId = fields.Int()
     teamName = fields.Str()
     teamConference = fields.Str()
+
 
 class OutputTeamSchema(Schema):
     output = fields.List(fields.Nested(TeamSchema))
@@ -102,6 +101,7 @@ class OutputTeamSchema(Schema):
 class TeamGameStatSchema(Schema):
     goalsAttempted = fields.Int()
     goalsScored = fields.Int()
+
 
 class GameSchema(Schema):
     gameId = fields.Int()
@@ -126,14 +126,17 @@ class SeriesSchema(Schema):
     conference = fields.Str()
     games = fields.List(fields.Nested(GameSchema()))
 
+
 class RoundSchema(Schema):
     roundNum = fields.Int()
     roundName = fields.Str()
     seriesList = fields.List(fields.Nested(SeriesSchema()))
 
+
 class SeasonSchema(Schema):
     seasonNum = fields.Str()
     rounds = fields.List(fields.Nested(RoundSchema()))
+
 
 class OuterListSchema(Schema):
     output = fields.List(fields.Nested(SeasonSchema()))
@@ -147,7 +150,7 @@ roundNumberToSeriesNumber = {1:8, 2: 4, 3: 2, 4:1}
 def parsePlayoffs():
     output = {}
 
-    startYear = 2006
+    startYear = 2009
     endYear = 2019
 
     startTime = time.time()
@@ -210,7 +213,6 @@ def parsePlayoffs():
 
                 gamesDone = 0
 
-                # for date in range(0, season.rounds[rd].series.teamOneGamesWon + season.rounds[rd].series.teamTwoGamesWon):
                 for date in range(0, len(playoffGamesJson["dates"])):
                     for gm in range(0, len(playoffGamesJson["dates"][date]["games"])):
                         gameId = playoffGamesJson["dates"][date]["games"][gm]["gamePk"]
@@ -268,19 +270,9 @@ def parsePlayoffs():
         print("Completed season " + str(seasonNum))
 
     print("Took {} seconds".format(time.time() - startTime))
-    # with open('data.json', 'w') as f:
-    #     SeasonEncoder().encode(f)
-
-#     frozen = jsonpickle.encode(output)
-
-    # for i in range(len(output)):
-    #     output[i] = SeasonSchema().dumps(output[i])
-
     savePath = os.path.join(os.path.dirname(__file__), "..", "assets", "data", "playoffData.json")
 
     with open(savePath, "w") as text_file:
-        # print(SeasonSchema().dumps(output), file=text_file)
-        # print(OuterListSchema().dump(output), file=text_file)
         print(json.dumps(OuterListSchema().dump(out)), file=text_file)
 
 
@@ -303,8 +295,6 @@ def parseTeams():
     savePath = os.path.join(os.path.dirname(__file__), "..", "assets", "data", "teamData.json")
 
     with open(savePath, "w") as text_file:
-        # print(SeasonSchema().dumps(output), file=text_file)
-        # print(OuterListSchema().dump(output), file=text_file)
         print(json.dumps(OutputTeamSchema().dump(out)), file=text_file)
 
 parsePlayoffs()

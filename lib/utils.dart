@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/services.dart';
-import 'package:tournament_app/models/playoffs.dart';
 import 'package:http/http.dart' as http;
 import 'package:tournament_app/models/all.dart';
 import 'package:tuple/tuple.dart';
@@ -29,143 +28,18 @@ String consistentVersus(String string) {
   }
 }
 
-/// Takes a season as an [int] of the form YEAR1YEAR2 (e.g. 20182019), and
-/// makes a GET request to statsapi.web.nhl.com to get playoff data. Returns
-///
-/// Needed since the API is inconsistent and gives strings with 'v' or 'vs'.
-// Future<Playoffs> fetchPlayoffs(int season) async {
-//   const baseUrl = 'https://statsapi.web.nhl.com/api/v1/tournaments/playoffs';
-//   const additionalUrl = '?expand=round.series,schedule.game.seriesSummary';
-//   final response =
-//       await http.get(Uri.parse(baseUrl + additionalUrl + '&season=$season'));
-//
-//   if (response.statusCode == 200) {
-//     // If the server did return a 200 OK response, then parse the JSON.
-//     Map<String, dynamic> jsonMap = jsonDecode(response.body);
-//     Playoffs playoffs = Playoffs.fromJson(jsonMap);
-//     return playoffs;
-//   } else {
-//     // If the server did not return a 200 OK response, then throw an exception.
-//     throw HttpException(
-//         'Failed to load playoff data from statsapi.web.nhl.com');
-//   }
-// }
-
-/// Takes a season as an [int] of the form YEAR1YEAR2 (e.g. 20182019), and
-/// makes a GET request to statsapi.web.nhl.com to get playoff data. Returns
-///
-/// Needed since the API is inconsistent and gives strings with 'v' or 'vs'.
-// Future<Map<Tuple2<int, int>, List<int>>> fetchGameNumbers(int season) async {
-//   const baseUrl = 'https://statsapi.web.nhl.com/api/v1/schedule';
-//   final additionalUrl = '?season=$season&gameType=P'; //&teamId=$teamId';
-//   final response = await http.get(Uri.parse(baseUrl + additionalUrl));
-//
-//   if (response.statusCode == 200) {
-//     // If the server did return a 200 OK response, then parse the JSON.
-//     Map<String, dynamic> jsonMap = jsonDecode(response.body);
-//
-//     List<dynamic> dates = jsonMap["dates"];
-//     // maps (teamId1, teamId2) -> List of games played
-//     Map<Tuple2<int, int>, List<int>> output = {};
-//     dates.forEach((element) {
-//       List<dynamic> gameList = element["games"];
-//       // Map<Tuple2<int, int>, List<int>> subMap = {};
-//       gameList.forEach((element) {
-//         int homeId = element["teams"]["home"]["team"]["id"];
-//         int awayId = element["teams"]["away"]["team"]["id"];
-//         int minId = min(homeId, awayId);
-//         int maxId = max(homeId, awayId);
-//
-//         Tuple2<int, int> key = Tuple2(minId, maxId);
-//         int val = element["gamePk"];
-//         if (output.containsKey(key)) {
-//           output[key]?.add(val);
-//         } else {
-//           output[key] = <int>[val];
-//         }
-//       });
-//
-//     });
-//
-//     // Print statement for debug
-//     // output.forEach((k, v) => print("Key : ${k.item1}, ${k.item2}, Value : ${v.toString()}"));
-//
-//     return output;
-//   } else {
-//     // If the server did not return a 200 OK response, then throw an exception.
-//     throw HttpException('Failed to load game data from statsapi.web.nhl.com');
-//   }
-// }
-
-
-/// Takes a season as an [int] of the form YEAR1YEAR2 (e.g. 20182019), and
-/// makes a GET request to statsapi.web.nhl.com to get playoff data. Returns
-///
-/// Needed since the API is inconsistent and gives strings with 'v' or 'vs'.
-// Future<Map<Tuple2<int, int>, List<int>>> fetchGameData(int game) async {
-//   const baseUrl = 'https://statsapi.web.nhl.com/api/v1/game';
-//   final additionalUrl = '/$game/linescore';
-//   final response = await http.get(Uri.parse(baseUrl + additionalUrl));
-//
-//   if (response.statusCode == 200) {
-//     // If the server did return a 200 OK response, then parse the JSON.
-//     Map<String, dynamic> jsonMap = jsonDecode(response.body);
-//
-//     List<dynamic> dates = jsonMap["dates"];
-//     // maps (teamId1, teamId2) -> List of games played
-//     Map<Tuple2<int, int>, List<int>> output = {};
-//     dates.forEach((element) {
-//       List<dynamic> gameList = element["games"];
-//       // Map<Tuple2<int, int>, List<int>> subMap = {};
-//       gameList.forEach((element) {
-//         int homeId = element["teams"]["home"]["team"]["id"];
-//         int awayId = element["teams"]["away"]["team"]["id"];
-//         int minId = min(homeId, awayId);
-//         int maxId = max(homeId, awayId);
-//
-//         Tuple2<int, int> key = Tuple2(minId, maxId);
-//         int val = element["gamePk"];
-//         if (output.containsKey(key)) {
-//           output[key]?.add(val);
-//         } else {
-//           output[key] = <int>[val];
-//         }
-//       });
-//
-//     });
-//
-//     // Print statement for debug
-//     // output.forEach((k, v) => print("Key : ${k.item1}, ${k.item2}, Value : ${v.toString()}"));
-//
-//     return output;
-//   } else {
-//     // If the server did not return a 200 OK response, then throw an exception.
-//     throw HttpException('Failed to load game data from statsapi.web.nhl.com');
-//   }
-// }
-
+/// Loads all the playoff data from the JSON in the assets folder
+/// Returns [List<PlayoffSeason>] if asset found, else throws exception
 Future<List<PlayoffSeason>> loadAllPlayoffData() async {
   String jsonData = await rootBundle.loadString('assets/data/playoffData.json');
   Map<String, dynamic> jsonMap = json.decode(jsonData);
-  List<dynamic> firstElt = jsonMap["output"];
+  List<dynamic> data = jsonMap["output"];
   List<PlayoffSeason> output = [];
-  firstElt.forEach((value)  {
-    // print(value);
+  for (var value in data) {
     output.add(PlayoffSeason.fromJson(value as Map<String, dynamic>));
-  });
+  }
   return output;
 }
-
-Future<Map<int, String>> loadTeamData() async {
-  String jsonData = await rootBundle.loadString('assets/data/teamData.json');
-  Map<String, dynamic> jsonMap = json.decode(jsonData);
-  Map<int, String> output = {};
-  // jsonMap.forEach((key, value) {output[int.parse(key)] = value as String;});
-  return output;
-}
-
-
-
 
 /// Takes four [String] strA, strB, strC, strD and returns true if
 /// one of {strA, strB} equals {strC, strD}
@@ -174,10 +48,21 @@ bool atLeastOneStringPairMatch(
   return (strA == strC) || (strA == strD) || (strB == strC) || (strB == strD);
 }
 
+/// Takes four [int] intA, intB, intC, intD and returns true if
+/// one of {intA, intB} equals {intC, intD}
+bool atLeastOneIntPairMatch(int intA, int intB, int intC, int intD) {
+  return (intA == intC) || (intA == intD) || (intB == intC) || (intB == intD);
+}
 
-/// Takes four [String] strA, strB, strC, strD and returns true if
-/// one of {strA, strB} equals {strC, strD}
-bool atLeastOneIntPairMatch(
-    int strA, int strB, int strC, int strD) {
-  return (strA == strC) || (strA == strD) || (strB == strC) || (strB == strD);
+/// Takes a [String] of the form "XXX v. YYY" or "XXX vs. YYY" and returns
+/// "XXX @ YYY" if the [bool] homeTeamIsFirst = true, and "YYY @ XXX" otherwise
+String toAwayAtHomeString(String input, bool homeTeamIsFirst) {
+  String temp = consistentVersus(input);
+  if (homeTeamIsFirst) {
+    return temp.replaceAll("vs.", "@");
+  } else {
+    String home = temp.substring(0, 3);
+    String away = temp.substring(8);
+    return away + " @ " + home;
+  }
 }

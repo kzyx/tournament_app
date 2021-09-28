@@ -1,7 +1,6 @@
-// export 'misc.dart';
-// export 'playoffs.dart';
-// export 'rounds.dart';
-// export 'series.dart';
-// export 'game.dart';
-//
-export 'json.dart';
+/// The classes in this model were created with some help from QuickType.io
+export 'enum.dart';
+export 'game.dart';
+export 'playoff.dart';
+export 'round.dart';
+export 'series.dart';

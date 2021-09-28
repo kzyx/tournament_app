@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tournament_app/treeviewpage.dart';
+import 'package:tournament_app/tournament_bracket.dart';
 
 void main() {
   runApp(MyApp());
@@ -8,7 +8,7 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) => MaterialApp(
-        home: TreeViewPage(key: treeViewPageKey),
+        home: TournamentBracket(key: treeViewPageKey),
         theme: ThemeData(
           fontFamily: 'Urbanist',
         ),

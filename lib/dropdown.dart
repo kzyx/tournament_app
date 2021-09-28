@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:tournament_app/treeviewpage.dart';
+import 'package:tournament_app/tournament_bracket.dart';
 
 /// This widget is for the dropdown that shows options for playoff seasons
 class PlayoffsYearDropdown extends StatefulWidget {
@@ -21,10 +21,10 @@ class _PlayoffsYearDropdownState extends State<PlayoffsYearDropdown> {
   Widget build(BuildContext context) {
     if (treeViewPageKey.currentState!.finishedLoading) {
       playoffsYear = [];
-      List<int> dropdownIntList = treeViewPageKey.currentState!.getDropdownYearsList();
-      dropdownIntList.forEach((e) => playoffsYear.add(e.toString().substring(0, 4) + '-' + e.toString().substring(4)));
-
-      playoffsYear.forEach((e) => print(e));
+      List<int> dropdownIntList =
+          treeViewPageKey.currentState!.getAllPlayoffYearNumbers();
+      dropdownIntList.forEach((e) => playoffsYear
+          .add(e.toString().substring(0, 4) + '-' + e.toString().substring(4)));
     }
     return DropdownButton<String>(
       value: dropdownValue,
@@ -39,6 +39,7 @@ class _PlayoffsYearDropdownState extends State<PlayoffsYearDropdown> {
       ),
       dropdownColor: Colors.blue,
       onChanged: (String? newValue) {
+        // Update selected playoff year and make the playoff bracket update
         if (newValue == dropdownValue) {
           return;
         }
