@@ -29,7 +29,7 @@ class TournamentBracket extends StatefulWidget {
 /// This is the private State class for the TreeViewPage
 class _TournamentBracketState extends State<TournamentBracket> {
   bool finishedLoading = false; // Boolean representing whether API call done
-  int currentRound = 3; // Set to three by default as per instructions
+  int currentRound = 5; // Set to 5 (i.e. playoffs over)
   Graph _graph = Graph()..isTree = true;
   BuchheimWalkerConfiguration builder = BuchheimWalkerConfiguration();
   late final List<PlayoffSeason> _playoffs;
