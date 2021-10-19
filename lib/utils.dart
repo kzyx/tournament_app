@@ -15,7 +15,7 @@ import 'package:tuple/tuple.dart';
 String consistentVersus(String string) {
   int numberOfV = 'v'.allMatches(string).length;
   if (numberOfV == 0 || numberOfV >= 2) {
-    throw ArgumentError("The stringing does not contain exactly one 'v'");
+    throw ArgumentError("The result string (Team1 v./vs. Team2) does not contain exactly one 'v'");
   } else {
     if (string.contains('vs')) {
       return string;

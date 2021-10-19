@@ -1,8 +1,8 @@
 import json
 import time
 import requests
-import jsonpickle
-import pydantic
+# import jsonpickle
+# import pydantic
 from marshmallow import Schema, fields
 import os, sys
 
@@ -142,6 +142,38 @@ class OuterListSchema(Schema):
     output = fields.List(fields.Nested(SeasonSchema()))
 ################################################
 
+
+def prettyShortName(shortName, switchOrder):
+    halves = []
+    if (" v " in shortName):
+        halves = shortName.split(" v ")
+    elif (" v. " in shortName):
+        halves = shortName.split(" v. ")
+    elif (" vs " in shortName):
+        halves = shortName.split(" vs ")
+    elif (" vs. " in shortName):
+        halves = shortName.split(" vs. ")
+    else:
+        raise Exception("Invalid input string: did not find 'v.' or 'vs.' in " + shortName)
+
+    return halves[1] + " vs. " + halves[0] if switchOrder else halves[0] + " vs. " + halves[1]
+
+def prettyLongName(longName, switchOrder):
+    halves = []
+    if (" v " in longName):
+        halves = longName.split(" v ")
+    elif (" v. " in longName):
+        halves = longName.split(" v. ")
+    elif (" vs " in longName):
+        halves = longName.split(" vs ")
+    elif (" vs. " in longName):
+        halves = longName.split(" vs. ")
+    else:
+        raise Exception("Invalid input string: did not find 'v.' or 'vs.' in " + longName)
+    
+    return halves[1] + " vs. " + halves[0] if switchOrder else halves[0] + " vs. " + halves[1]
+
+
 roundNumberToName = {1:'Conference Quarterfinals', 2:'Conference Semifinals',\
                      3:'Conference Finals', 4:'Stanley Cup Finals'}
 
@@ -180,6 +212,9 @@ def parsePlayoffs():
                                                        playoffsJson["rounds"][rd]["series"][sr]["matchupTeams"][1]["team"]["id"])
                 season.rounds[rd].seriesList[sr].teamTwo = max(playoffsJson["rounds"][rd]["series"][sr]["matchupTeams"][0]["team"]["id"], \
                                                        playoffsJson["rounds"][rd]["series"][sr]["matchupTeams"][1]["team"]["id"])
+                # teamOneIsFirst = True
+                # season.rounds[rd].seriesList[sr].teamOne = playoffsJson["rounds"][rd]["series"][sr]["matchupTeams"][0]["team"]["id"]
+                # season.rounds[rd].seriesList[sr].teamTwo = playoffsJson["rounds"][rd]["series"][sr]["matchupTeams"][1]["team"]["id"]
                 season.rounds[rd].seriesList[sr].teamOneGamesWon = playoffsJson["rounds"][rd]["series"][sr]["matchupTeams"][0 if teamOneIsFirst else 1]["seriesRecord"]["wins"]
                 season.rounds[rd].seriesList[sr].teamTwoGamesWon = playoffsJson["rounds"][rd]["series"][sr]["matchupTeams"][1 if teamOneIsFirst else 0]["seriesRecord"]["wins"]
 
@@ -206,6 +241,12 @@ def parsePlayoffs():
 
                 season.rounds[rd].seriesList[sr].shortName = playoffsJson["rounds"][rd]["series"][sr]["names"]["matchupShortName"]
                 season.rounds[rd].seriesList[sr].longName  = playoffsJson["rounds"][rd]["series"][sr]["names"]["matchupName"]
+            
+                season.rounds[rd].seriesList[sr].shortName = prettyShortName(season.rounds[rd].seriesList[sr].shortName, not(teamOneIsFirst))
+                season.rounds[rd].seriesList[sr].longName = prettyLongName(season.rounds[rd].seriesList[sr].longName, not(teamOneIsFirst))
+
+                # print(season.rounds[rd].seriesList[sr].shortName)
+                # print(season.rounds[rd].seriesList[sr].longName)
                 season.rounds[rd].seriesList[sr].shortResult = playoffsJson["rounds"][rd]["series"][sr]["currentGame"]["seriesSummary"]["seriesStatusShort"]
                 season.rounds[rd].seriesList[sr].longResult = playoffsJson["rounds"][rd]["series"][sr]["currentGame"]["seriesSummary"]["seriesStatus"]
 

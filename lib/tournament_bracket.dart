@@ -65,7 +65,7 @@ class _TournamentBracketState extends State<TournamentBracket> {
                             ..strokeWidth = 1
                             ..style = PaintingStyle.stroke,
                           builder: (Node node) {
-                            return rectangleWidget(node as PlayoffNode);
+                            return TournamentBracketNode(node as PlayoffNode);
                           },
                         )),
                   ),
@@ -135,7 +135,7 @@ class _TournamentBracketState extends State<TournamentBracket> {
   }
 
   /// This widget visualizes a node in our graph
-  Widget rectangleWidget(PlayoffNode playoffNode) {
+  Widget TournamentBracketNode(PlayoffNode playoffNode) {
     return InkWell(
       onTap: () {
         showDialog(
