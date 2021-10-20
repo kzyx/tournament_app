@@ -5,7 +5,7 @@ import 'package:tournament_app/styles.dart';
 
 /// This widget visualizes a node in our graph
 Widget TournamentBracketNode(
-    PlayoffNode playoffNode, BuildContext context, int currentRound) {
+    PlayoffNode playoffNode, BuildContext context) {
   return InkWell(
     onTap: () {
       showDialog(
@@ -21,7 +21,7 @@ Widget TournamentBracketNode(
       );
     },
     child: AnimatedOpacity(
-        opacity: (currentRound >= playoffNode.roundNum) ? 1.00 : 0.00,
+        opacity: (playoffNode.currentRound >= playoffNode.roundNum) ? 1.00 : 0.00,
         duration: const Duration(milliseconds: 500),
         child: Container(
           padding: EdgeInsets.all(4),
@@ -43,7 +43,7 @@ Widget TournamentBracketNode(
               Column(children: <Widget>[
                 Text(playoffNode.series.shortName, style: whiteBoldText),
                 AnimatedOpacity(
-                  opacity: (currentRound > playoffNode.roundNum) ? 1.00 : 0.00,
+                  opacity: (playoffNode.currentRound > playoffNode.roundNum) ? 1.00 : 0.00,
                   duration: const Duration(milliseconds: 500),
                   child: Text(playoffNode.series.shortResult,
                       style: whiteBoldText),

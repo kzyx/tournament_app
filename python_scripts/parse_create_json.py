@@ -1,202 +1,42 @@
 import json
 import time
 import requests
-# import jsonpickle
-# import pydantic
 from marshmallow import Schema, fields
 import os, sys
-
-#####################################################################
-# Database class declarations
-class Output:
-    output = []
-
-
-class Season:
-    seasonNum = str(20182019)
-    rounds = [] # array of playoff rounds
-    def __init__(self, seasonNum, rounds):
-        self.seasonNum = seasonNum
-        self.rounds = rounds
-
-
-class Round:
-    roundNum = -1
-    roundName = ""
-    seriesList = []
-    def __init__(self, roundNum, roundName, seriesList):
-        self.roundNum = roundNum
-        self.roundName = roundName
-        self.seriesList = seriesList
-
-
-class Series:
-    # teamOne is the team with the lower teamId
-    shortName = ""
-    longName = ""
-    shortResult = ""
-    longResult = ""
-    teamOne = -1
-    teamTwo = -1
-    teamOneGamesWon = -1
-    teamTwoGamesWon = -1
-    conference = ""
-    games = []
-
-
-class TeamGameStat:
-    goalsAttempted = -1
-    goalsScored = -1
-    # scoringPlayers = [] # TODO: Could add later on
-
-
-class Game:
-    gameId = -1
-    teamGameStatOne = TeamGameStat()
-    teamGameStatTwo = TeamGameStat()
-    victorId = -1
-    homeTeamId = -1
-    venue = ""
-    highlights = ""
-    def __init__(self, gameId, teamGameStatOne, teamGameStatTwo, victorId, homeTeamId, venue, highlights):
-        self.gameId = gameId
-        self.teamGameStatOne = teamGameStatOne
-        self.teamGameStatTwo = teamGameStatTwo
-        self.victorId = victorId
-        self.homeTeamId = homeTeamId
-        self.venue = venue
-        self.highlights = highlights
-
-
-class Team:
-    teamId = -1
-    teamName = ""
-    teamConference = ""
-    # TODO: Could add players, etc
-
-
-class OutputTeam:
-    output = []
-
-
-class TeamSchema(Schema):
-    teamId = fields.Int()
-    teamName = fields.Str()
-    teamConference = fields.Str()
-
-
-class OutputTeamSchema(Schema):
-    output = fields.List(fields.Nested(TeamSchema))
-    
-
-# TODO: Could add this class in the future
-# class Player:
-#     playerId = -1
-#     playerName = ""
-#     def __init__(self, teamId, teamName):
-#         self.teamId = teamId
-#         self.teamName = teamName
-#####################################################################
-
-class TeamGameStatSchema(Schema):
-    goalsAttempted = fields.Int()
-    goalsScored = fields.Int()
-
-
-class GameSchema(Schema):
-    gameId = fields.Int()
-    teamGameStatOne = fields.Nested(TeamGameStatSchema())
-    teamGameStatTwo = fields.Nested(TeamGameStatSchema())
-    victorId = fields.Int()
-    homeTeamId = fields.Int()
-    venue = fields.Str()
-    highlights = fields.Str()
-
-
-class SeriesSchema(Schema):
-    # teamOne is the team with the lower teamId
-    shortName = fields.Str()
-    longName = fields.Str()
-    shortResult = fields.Str()
-    longResult = fields.Str()
-    teamOne = fields.Int()
-    teamTwo = fields.Int()
-    teamOneGamesWon = fields.Int()
-    teamTwoGamesWon = fields.Int()
-    conference = fields.Str()
-    games = fields.List(fields.Nested(GameSchema()))
-
-
-class RoundSchema(Schema):
-    roundNum = fields.Int()
-    roundName = fields.Str()
-    seriesList = fields.List(fields.Nested(SeriesSchema()))
-
-
-class SeasonSchema(Schema):
-    seasonNum = fields.Str()
-    rounds = fields.List(fields.Nested(RoundSchema()))
-
-
-class OuterListSchema(Schema):
-    output = fields.List(fields.Nested(SeasonSchema()))
-################################################
-
-
-def prettyShortName(shortName, switchOrder):
-    halves = []
-    if (" v " in shortName):
-        halves = shortName.split(" v ")
-    elif (" v. " in shortName):
-        halves = shortName.split(" v. ")
-    elif (" vs " in shortName):
-        halves = shortName.split(" vs ")
-    elif (" vs. " in shortName):
-        halves = shortName.split(" vs. ")
-    else:
-        raise Exception("Invalid input string: did not find 'v.' or 'vs.' in " + shortName)
-
-    return halves[1] + " vs. " + halves[0] if switchOrder else halves[0] + " vs. " + halves[1]
-
-def prettyLongName(longName, switchOrder):
-    halves = []
-    if (" v " in longName):
-        halves = longName.split(" v ")
-    elif (" v. " in longName):
-        halves = longName.split(" v. ")
-    elif (" vs " in longName):
-        halves = longName.split(" vs ")
-    elif (" vs. " in longName):
-        halves = longName.split(" vs. ")
-    else:
-        raise Exception("Invalid input string: did not find 'v.' or 'vs.' in " + longName)
-    
-    return halves[1] + " vs. " + halves[0] if switchOrder else halves[0] + " vs. " + halves[1]
-
+from parse_utils import makeConsistentVersus
+from model.db_schema import *
+from model.db_schema_serialize import *
 
 roundNumberToName = {1:'Conference Quarterfinals', 2:'Conference Semifinals',\
                      3:'Conference Finals', 4:'Stanley Cup Finals'}
+roundNumberToSeriesNumber = {1:8, 2: 4, 3: 2, 4:1} # maps round -> # of series in round
 
-roundNumberToSeriesNumber = {1:8, 2: 4, 3: 2, 4:1}
+def parsePlayoffs(startYear=1997, endYear=2000):
+    '''
+        Generates a JSON object containing the data for the NHL seasons
+        [startYear-starYear+1, ..., endYear-1, endYear].
+        Currently skips problematic seasons such as the 2004-2005 lockout.
+        This JSON is saved in 'assets/data'.
+    '''
 
-def parsePlayoffs():
-    output = {}
-
-    startYear = 2005
-    endYear = 2020
+    if (startYear <= 1995):
+        raise "Entered season is not currently supported"
 
     startTime = time.time()
     seasonsDone = 0
     out = Output()
     out.output = [None] * (endYear - startYear)
 
-    seasonsToIgnore = set([20042005, 20062007, 20072008, 20082009])
+    # Seasons to ignore (not fetch), some such as the 2004-2005 correspond to an NHL lockout
+    seasonsToIgnore = set([20032004, 20042005, 20062007, 20072008, 20082009])
 
     for year in range(startYear, endYear):
         seasonNum = year*10**4 + year + 1
 
+        # Ignore season if it is known to have issues 
         if seasonNum in seasonsToIgnore:
-            out.output.pop(-1)
+            out.output.pop(-1) # shrink size of output season list by one
+            print("Ignored season {}".format(seasonNum))
             continue
         print("Started season {}".format(seasonNum))
 
@@ -207,9 +47,13 @@ def parsePlayoffs():
         playoffURL = 'https://statsapi.web.nhl.com/api/v1/tournaments/playoffs?expand=round.series&season={}'.format(seasonNum)
         playoffsResp = requests.get(playoffURL)
         playoffsJson = playoffsResp.json()
+
+        # Special case: The NHL Stats API is yet again inconsistent, and returns a different JSON for 20192020.
+        #               The 20192020 object has an extra initial round that is just a qualifier round
+        #               We handle this by simply replacing rounds [0...3] with [1...4]
         if (seasonNum == 20192020):
-            for i in range(4):
-                playoffsJson["rounds"][i] = playoffsJson["rounds"][i+1]
+            for rd in range(4):
+                playoffsJson["rounds"][rd] = playoffsJson["rounds"][rd+1]
 
         playoffGamesURL = 'https://statsapi.web.nhl.com/api/v1/schedule?season={}&gameType=P'.format(seasonNum)
         playoffGamesResp = requests.get(playoffGamesURL)
@@ -220,47 +64,42 @@ def parsePlayoffs():
         for rd in range(0, 4):
             season.rounds[rd].seriesList = [Series() for j in range(roundNumberToSeriesNumber[rd + 1])]
             for sr in range(0, roundNumberToSeriesNumber[rd + 1]):
-                # need victor, games
+                # teamOneIsFirst is used to reorder the teamIDs so that teamOneId < teamTwoId
                 teamOneIsFirst = playoffsJson["rounds"][rd]["series"][sr]["matchupTeams"][0]["team"]["id"] < \
                     playoffsJson["rounds"][rd]["series"][sr]["matchupTeams"][1]["team"]["id"]
                 season.rounds[rd].seriesList[sr].teamOne = min(playoffsJson["rounds"][rd]["series"][sr]["matchupTeams"][0]["team"]["id"], \
                                                        playoffsJson["rounds"][rd]["series"][sr]["matchupTeams"][1]["team"]["id"])
                 season.rounds[rd].seriesList[sr].teamTwo = max(playoffsJson["rounds"][rd]["series"][sr]["matchupTeams"][0]["team"]["id"], \
                                                        playoffsJson["rounds"][rd]["series"][sr]["matchupTeams"][1]["team"]["id"])
-                # teamOneIsFirst = True
-                # season.rounds[rd].seriesList[sr].teamOne = playoffsJson["rounds"][rd]["series"][sr]["matchupTeams"][0]["team"]["id"]
-                # season.rounds[rd].seriesList[sr].teamTwo = playoffsJson["rounds"][rd]["series"][sr]["matchupTeams"][1]["team"]["id"]
                 season.rounds[rd].seriesList[sr].teamOneGamesWon = playoffsJson["rounds"][rd]["series"][sr]["matchupTeams"][0 if teamOneIsFirst else 1]["seriesRecord"]["wins"]
                 season.rounds[rd].seriesList[sr].teamTwoGamesWon = playoffsJson["rounds"][rd]["series"][sr]["matchupTeams"][1 if teamOneIsFirst else 0]["seriesRecord"]["wins"]
-                if (season.rounds[rd].seriesList[sr].teamOneGamesWon == 0 and season.rounds[rd].seriesList[sr].teamTwoGamesWon == 0):
-                    print("rd={}, sr={}".format(rd, sr))
+
+                # The following try except block is needed for cases where the conference name is null/not present
+                # This happens due to the fact that the NHL Stats API can be horribly inconsistent.
+                # We solve this problem by looking at our team JSON to find the conferences of each team on the series that year
+                # If both teams have the same conference, we update our series conference variable. Otherwise, we leave it "N/A"
                 try:
                     season.rounds[rd].seriesList[sr].conference = playoffsJson["rounds"][rd]["series"][sr]["conference"]["name"]
                 except KeyError as e:
                     season.rounds[rd].seriesList[sr].conference = "N/A"
-                    if (rd != 4):
+                    if (rd != 4): # we don't care about the conference if it's the Stanley Cup Final
                         teamOneConf = ""
                         teamTwoConf = ""
                         for tm in range(len(teamJson["teams"])):
                             if (teamJson["teams"][tm]["id"] == season.rounds[rd].seriesList[sr].teamOne):
                                 teamOneConf = teamJson["teams"][tm]["conference"]["name"]
-                                print("c1", teamOneConf, minId, maxId)
+                                # print("Found team1", teamOneConf)
                             if (teamJson["teams"][tm]["id"] == season.rounds[rd].seriesList[sr].teamTwo):
                                 teamTwoConf = teamJson["teams"][tm]["conference"]["name"]
-                                print("c2", teamTwoConf, minId, maxId)
+                                # print("Found team2", teamTwoConf)
                             if (teamOneConf != "" and teamTwoConf != "" and teamOneConf == teamTwoConf):
                                 season.rounds[rd].seriesList[sr].conference = teamOneConf
-                                print("c3_done", rd, sr, teamOneConf, minId, maxId)
+                                # print("Found team1 and team2", rd, sr, teamOneConf)
                                 break
 
-                season.rounds[rd].seriesList[sr].shortName = playoffsJson["rounds"][rd]["series"][sr]["names"]["matchupShortName"]
-                season.rounds[rd].seriesList[sr].longName  = playoffsJson["rounds"][rd]["series"][sr]["names"]["matchupName"]
-            
-                season.rounds[rd].seriesList[sr].shortName = prettyShortName(season.rounds[rd].seriesList[sr].shortName, not(teamOneIsFirst))
-                season.rounds[rd].seriesList[sr].longName = prettyLongName(season.rounds[rd].seriesList[sr].longName, not(teamOneIsFirst))
+                season.rounds[rd].seriesList[sr].shortName = makeConsistentVersus(playoffsJson["rounds"][rd]["series"][sr]["names"]["matchupShortName"], not(teamOneIsFirst))
+                season.rounds[rd].seriesList[sr].longName  = makeConsistentVersus(playoffsJson["rounds"][rd]["series"][sr]["names"]["matchupName"], not(teamOneIsFirst))
 
-                # print(season.rounds[rd].seriesList[sr].shortName)
-                # print(season.rounds[rd].seriesList[sr].longName)
                 season.rounds[rd].seriesList[sr].shortResult = playoffsJson["rounds"][rd]["series"][sr]["currentGame"]["seriesSummary"]["seriesStatusShort"]
                 season.rounds[rd].seriesList[sr].longResult = playoffsJson["rounds"][rd]["series"][sr]["currentGame"]["seriesSummary"]["seriesStatus"]
 
@@ -318,13 +157,7 @@ def parsePlayoffs():
                             try:
                                 season.rounds[rd].seriesList[sr].games[gamesDone] = game
                             except IndexError as e:
-                                # print(rd)
-                                # print(sr)
-                                # print(gamesDone)
-                                # print(len(season.rounds))
-                                # print(len(season.rounds[rd].seriesList))
-                                # print(len(season.rounds[rd].seriesList[sr].games))
-                                print("IndexError")
+                                print("IndexError occured at rd {}, sr {}, game {}".format(rd, sr, gamesDone))
                             gamesDone += 1
 
         out.output[seasonsDone] = season
@@ -337,27 +170,4 @@ def parsePlayoffs():
     with open(savePath, "w") as text_file:
         print(json.dumps(OuterListSchema().dump(out)), file=text_file)
 
-
-def parseTeams():
-    output = {}
-
-    startTime = time.time()
-    url = 'https://statsapi.web.nhl.com/api/v1/teams'
-    resp = requests.get(url)
-    myjson = resp.json()
-
-    out = OutputTeam()
-    out.output = [Team()] * len(myjson["teams"])
-
-    for r in range(len(myjson["teams"])):
-        out.output[r].teamName = myjson["teams"][r]["name"]
-        out.output[r].teamId = myjson["teams"][r]["id"]
-        out.output[r].teamConference = myjson["teams"][r]["conference"]["name"]
-
-    savePath = os.path.join(os.path.dirname(__file__), "..", "assets", "data", "teamData.json")
-
-    with open(savePath, "w") as text_file:
-        print(json.dumps(OutputTeamSchema().dump(out)), file=text_file)
-
 parsePlayoffs()
-# parseTeams()

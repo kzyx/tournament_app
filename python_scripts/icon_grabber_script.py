@@ -1,3 +1,6 @@
+# This file downloads and saves logo icon pngs for each NHL Team
+# NOTE: Certain historical teams like the Quebec Nordiques and the 1972-1996
+#       Winnipeg Jets are not available from this source
 import urllib.request
 import os
 
@@ -22,7 +25,7 @@ def grab_team_icons():
     for i in range(1, 100):
         linkToFile = "https://www-league.nhlstatic.com/images/logos/teams-current-primary-dark/{}.svg".format(i)
         try: 
-            urllib.request.urlretrieve(linkToFile, os.path.join(__location__, 'assets' , 'team_{}.svg'.format(i)))
+            urllib.request.urlretrieve(linkToFile, os.path.join(__location__, '..', 'assets' , 'team_{}.svg'.format(i)))
         except:
             print("Failed at team {}".format(i))
 
@@ -33,9 +36,9 @@ def convert_svgs_to_png():
     '''
     for i in range(1, 100):
         try:
-            image = pyvips.Image.new_from_file(os.path.join(__location__, 'assets' , 'team_{}.svg'.format(i)), dpi=200)
-            image.write_to_file(os.path.join(__location__, 'assets' , 'team_{}.png'.format(i)))
-            os.remove(os.path.join(__location__, 'assets' , 'team_{}.svg'.format(i)))
+            image = pyvips.Image.new_from_file(os.path.join(__location__, '..','assets' , 'team_{}.svg'.format(i)), dpi=200)
+            image.write_to_file(os.path.join(__location__,'..', 'assets' , 'team_{}.png'.format(i)))
+            os.remove(os.path.join(__location__, '..', 'assets' , 'team_{}.svg'.format(i)))
         except:
             print("Failed at team {}".format(i))
 

@@ -25,7 +25,7 @@ class TournamentBracket extends StatefulWidget {
 class _TournamentBracketState extends State<TournamentBracket> {
   int currentRound = 5; // Set to 5 (i.e. playoffs over)
   Graph _graph = Graph()..isTree = true;
-  BuchheimWalkerConfiguration _builder = BuchheimWalkerConfiguration();
+  final BuchheimWalkerConfiguration _builder = BuchheimWalkerConfiguration();
   late Future<List<PlayoffSeason>> _playoffsFuture;
   late List<PlayoffSeason> _playoffs;
   late PlayoffSeason _currentSeason;
@@ -65,10 +65,11 @@ class _TournamentBracketState extends State<TournamentBracket> {
                                   ..strokeWidth = 1
                                   ..style = PaintingStyle.stroke,
                                 builder: (Node node) {
+                                  PlayoffNode playoffNode = node as PlayoffNode;
+                                  playoffNode.currentRound = currentRound;
                                   return TournamentBracketNode(
-                                      node as PlayoffNode,
-                                      context,
-                                      currentRound);
+                                      playoffNode,
+                                      context);
                                 },
                               )),
                         ),
@@ -145,7 +146,7 @@ class _TournamentBracketState extends State<TournamentBracket> {
     // Set up some graph options
     _builder
       ..siblingSeparation = (25)
-      ..levelSeparation = (50)
+      ..levelSeparation = (100)
       ..subtreeSeparation = (25)
       ..orientation = (BuchheimWalkerConfiguration.ORIENTATION_RIGHT_LEFT);
 
