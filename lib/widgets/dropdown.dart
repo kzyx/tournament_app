@@ -1,10 +1,15 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:tournament_app/tournament_bracket.dart';
+import 'package:tournament_app/widgets/tournament_bracket.dart';
 
 /// This widget is for the dropdown that shows options for playoff seasons
 class PlayoffsYearDropdown extends StatefulWidget {
-  const PlayoffsYearDropdown({Key? key}) : super(key: key);
+  late List<int> playoffsYearNums;
+
+  PlayoffsYearDropdown({Key? key, required List<int> playoffsYearNums})
+      : super(key: key) {
+    this.playoffsYearNums = playoffsYearNums;
+  }
 
   @override
   State<PlayoffsYearDropdown> createState() => _PlayoffsYearDropdownState();
@@ -13,19 +18,28 @@ class PlayoffsYearDropdown extends StatefulWidget {
 /// This is the private State class for the dropdown
 class _PlayoffsYearDropdownState extends State<PlayoffsYearDropdown> {
   // Default season value is 2018-2019. Options go from 2013-2014 to 2018-2019.
-  String dropdownValue = '2018-2019';
+  late String dropdownValue;
+  late final List<int> playoffsYearNums;
+  late final List<String> playoffsYearStrs;
 
-  List<String> playoffsYear = ['2018-2019'];
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    if (widget.playoffsYearNums.isEmpty) {
+      throw Exception("Cannot build playoff dropdown with zero options");
+    }
+    playoffsYearNums = widget.playoffsYearNums;
+    List<String> temp = [];
+    playoffsYearNums.forEach((e) {
+      temp.add(e.toString().substring(0, 4) + '-' + e.toString().substring(4));
+    });
+    playoffsYearStrs = temp;
+    dropdownValue = playoffsYearStrs.last;
+  }
 
   @override
   Widget build(BuildContext context) {
-    if (treeViewPageKey.currentState!.finishedLoading) {
-      playoffsYear = [];
-      List<int> dropdownIntList =
-          treeViewPageKey.currentState!.getAllPlayoffYearNumbers();
-      dropdownIntList.forEach((e) => playoffsYear
-          .add(e.toString().substring(0, 4) + '-' + e.toString().substring(4)));
-    }
     return DropdownButton<String>(
       value: dropdownValue,
       icon: const Icon(Icons.keyboard_arrow_down),
@@ -47,11 +61,12 @@ class _PlayoffsYearDropdownState extends State<PlayoffsYearDropdown> {
             int.parse(newValue!.substring(0, 4) + newValue.substring(5));
         setState(() {
           dropdownValue = newValue;
-          treeViewPageKey.currentState!.finishedLoading = false;
+          treeViewPageKey.currentState!.updateCurrentSeason(season);
+
+          // treeViewPageKey.currentState!.finishedLoading = false;
         });
-        treeViewPageKey.currentState!.generateGraphFromPlayoffs(season);
       },
-      items: playoffsYear.map((playoffsYear) {
+      items: playoffsYearStrs.map((playoffsYear) {
         return DropdownMenuItem<String>(
           value: playoffsYear,
           child: Text(playoffsYear),

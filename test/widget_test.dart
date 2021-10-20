@@ -9,8 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:tournament_app/main.dart';
-import 'package:tournament_app/series_popup.dart';
-import 'package:tournament_app/video_player_popup.dart';
+import 'package:tournament_app/widgets/series_popup.dart';
+import 'package:tournament_app/widgets/video_player_popup.dart';
 import 'package:tournament_app/models/all.dart';
 import 'dart:math';
 

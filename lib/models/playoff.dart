@@ -7,6 +7,7 @@ import 'package:tournament_app/models/round.dart';
 class PlayoffNode extends Node {
   late Series series;
   late int roundNum;
+  bool isVisible = true;
 
   PlayoffNode({required int id, required Series series, required int roundNum})
       : super.Id(id) {

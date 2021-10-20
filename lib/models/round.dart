@@ -1,5 +1,4 @@
 import 'package:tournament_app/models/series.dart';
-import 'package:meta/meta.dart';
 import 'dart:convert';
 import 'package:tournament_app/models/enum.dart';
 

@@ -1,9 +1,13 @@
+/// This file contains a class which represents the popup that is opened
+/// when you press on a series in the playoff graph. In this popup, the user
+/// can see stats/info for each game played in the series.
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:tournament_app/models/all.dart';
-import 'package:tournament_app/tournament_bracket.dart';
 import 'package:tournament_app/utils.dart' as Utils;
-import 'package:tournament_app/video_player_popup.dart';
+import 'package:tournament_app/widgets/video_player_popup.dart';
+import 'package:tournament_app/styles.dart';
 
 /// This class represents a single game in the series list popup
 class GameElement {
@@ -34,10 +38,9 @@ class _SeriesPopupState extends State<SeriesPopup> {
   late List<GameElement> _data;
 
   _SeriesPopupState(this.series) {
-    int numberOfGames =
-        series.teamOneGamesWon + series.teamTwoGamesWon;
+    int numberOfGames = series.teamOneGamesWon + series.teamTwoGamesWon;
     _data = List<GameElement>.generate(numberOfGames,
-            (i) => GameElement(gameIndex: i, headerValue: 'Game ${(i + 1)}'));
+        (i) => GameElement(gameIndex: i, headerValue: 'Game ${(i + 1)}'));
   }
 
   @override
@@ -79,8 +82,7 @@ class _SeriesPopupState extends State<SeriesPopup> {
 
         // Determine whether the game has highlights. Old games in particular
         // don't have highlights (e.g. 2010 NHL playoff games).
-        bool showHighlights =
-            series.games[item.gameIndex].highlights != "N/A";
+        bool showHighlights = series.games[item.gameIndex].highlights != "N/A";
 
         return ExpansionPanel(
           backgroundColor: Colors.teal,
@@ -171,7 +173,7 @@ class _SeriesPopupState extends State<SeriesPopup> {
                         ),
                       ],
                     )),
-                const SizedBox(height: 20),
+                const SizedBox(height: 30),
                 if (showHighlights) ...[
                   ListTile(
                       title: const Text("Watch highlights",

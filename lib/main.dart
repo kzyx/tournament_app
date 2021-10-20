@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tournament_app/tournament_bracket.dart';
+import 'package:tournament_app/widgets/tournament_bracket.dart';
 
 void main() {
   runApp(MyApp());

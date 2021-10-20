@@ -182,7 +182,7 @@ roundNumberToSeriesNumber = {1:8, 2: 4, 3: 2, 4:1}
 def parsePlayoffs():
     output = {}
 
-    startYear = 2009
+    startYear = 2005
     endYear = 2019
 
     startTime = time.time()
@@ -191,6 +191,11 @@ def parsePlayoffs():
     out.output = [None] * (endYear - startYear)
 
     for year in range(startYear, endYear):
+        if year == 2004: # skip lockout season of 2004-2005
+            continue
+        elif year >= 2006 and year <= 2008:
+            continue
+
         seasonNum = year*10**4 + year + 1
         playoffURL = 'https://statsapi.web.nhl.com/api/v1/tournaments/playoffs?expand=round.series&season={}'.format(seasonNum)
         playoffsResp = requests.get(playoffURL)

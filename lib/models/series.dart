@@ -1,8 +1,6 @@
 import 'package:tournament_app/models/enum.dart';
 import 'package:tournament_app/models/game.dart';
-import 'package:meta/meta.dart';
 import 'dart:convert';
-import 'package:graphview/GraphView.dart';
 
 /// Represents a single series played in a round of a playoff season
 class Series {
