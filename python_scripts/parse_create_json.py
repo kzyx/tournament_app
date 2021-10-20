@@ -183,23 +183,33 @@ def parsePlayoffs():
     output = {}
 
     startYear = 2005
-    endYear = 2019
+    endYear = 2020
 
     startTime = time.time()
     seasonsDone = 0
     out = Output()
     out.output = [None] * (endYear - startYear)
 
-    for year in range(startYear, endYear):
-        if year == 2004: # skip lockout season of 2004-2005
-            continue
-        elif year >= 2006 and year <= 2008:
-            continue
+    seasonsToIgnore = set([20042005, 20062007, 20072008, 20082009])
 
+    for year in range(startYear, endYear):
         seasonNum = year*10**4 + year + 1
+
+        if seasonNum in seasonsToIgnore:
+            out.output.pop(-1)
+            continue
+        print("Started season {}".format(seasonNum))
+
+        teamURL = 'https://statsapi.web.nhl.com/api/v1/teams?expand=team.conference&season=' + str(seasonNum)
+        teamResp = requests.get(teamURL)
+        teamJson = teamResp.json()
+
         playoffURL = 'https://statsapi.web.nhl.com/api/v1/tournaments/playoffs?expand=round.series&season={}'.format(seasonNum)
         playoffsResp = requests.get(playoffURL)
         playoffsJson = playoffsResp.json()
+        if (seasonNum == 20192020):
+            for i in range(4):
+                playoffsJson["rounds"][i] = playoffsJson["rounds"][i+1]
 
         playoffGamesURL = 'https://statsapi.web.nhl.com/api/v1/schedule?season={}&gameType=P'.format(seasonNum)
         playoffGamesResp = requests.get(playoffGamesURL)
@@ -222,27 +232,26 @@ def parsePlayoffs():
                 # season.rounds[rd].seriesList[sr].teamTwo = playoffsJson["rounds"][rd]["series"][sr]["matchupTeams"][1]["team"]["id"]
                 season.rounds[rd].seriesList[sr].teamOneGamesWon = playoffsJson["rounds"][rd]["series"][sr]["matchupTeams"][0 if teamOneIsFirst else 1]["seriesRecord"]["wins"]
                 season.rounds[rd].seriesList[sr].teamTwoGamesWon = playoffsJson["rounds"][rd]["series"][sr]["matchupTeams"][1 if teamOneIsFirst else 0]["seriesRecord"]["wins"]
-
+                if (season.rounds[rd].seriesList[sr].teamOneGamesWon == 0 and season.rounds[rd].seriesList[sr].teamTwoGamesWon == 0):
+                    print("rd={}, sr={}".format(rd, sr))
                 try:
                     season.rounds[rd].seriesList[sr].conference = playoffsJson["rounds"][rd]["series"][sr]["conference"]["name"]
                 except KeyError as e:
-                    teamURL = 'https://statsapi.web.nhl.com/api/v1/teams'
-                    teamResp = requests.get(teamURL)
-                    teamJson = teamResp.json()
-
                     season.rounds[rd].seriesList[sr].conference = "N/A"
-                    teamOneConf = ""
-                    teamTwoConf = ""
-                    for tm in range(len(teamJson["teams"])):
-                        if (teamJson["teams"][tm]["id"] == season.rounds[rd].seriesList[sr].teamOne):
-                            teamOneConf = teamJson["teams"][tm]["conference"]["name"]
-                            print("c1", teamOneConf, minId, maxId)
-                        if (teamJson["teams"][tm]["id"] == season.rounds[rd].seriesList[sr].teamTwo):
-                            teamTwoConf = teamJson["teams"][tm]["conference"]["name"]
-                            print("c2", teamTwoConf, minId, maxId)
-                        if (teamOneConf != "" and teamTwoConf != "" and teamOneConf == teamTwoConf):
-                            season.rounds[rd].seriesList[sr].conference = teamOneConf
-                            print("c3", rd, sr, teamOneConf, minId, maxId)
+                    if (rd != 4):
+                        teamOneConf = ""
+                        teamTwoConf = ""
+                        for tm in range(len(teamJson["teams"])):
+                            if (teamJson["teams"][tm]["id"] == season.rounds[rd].seriesList[sr].teamOne):
+                                teamOneConf = teamJson["teams"][tm]["conference"]["name"]
+                                print("c1", teamOneConf, minId, maxId)
+                            if (teamJson["teams"][tm]["id"] == season.rounds[rd].seriesList[sr].teamTwo):
+                                teamTwoConf = teamJson["teams"][tm]["conference"]["name"]
+                                print("c2", teamTwoConf, minId, maxId)
+                            if (teamOneConf != "" and teamTwoConf != "" and teamOneConf == teamTwoConf):
+                                season.rounds[rd].seriesList[sr].conference = teamOneConf
+                                print("c3_done", rd, sr, teamOneConf, minId, maxId)
+                                break
 
                 season.rounds[rd].seriesList[sr].shortName = playoffsJson["rounds"][rd]["series"][sr]["names"]["matchupShortName"]
                 season.rounds[rd].seriesList[sr].longName  = playoffsJson["rounds"][rd]["series"][sr]["names"]["matchupName"]
@@ -256,8 +265,7 @@ def parsePlayoffs():
                 season.rounds[rd].seriesList[sr].longResult = playoffsJson["rounds"][rd]["series"][sr]["currentGame"]["seriesSummary"]["seriesStatus"]
 
                 season.rounds[rd].seriesList[sr].games = [None] * (season.rounds[rd].seriesList[sr].teamOneGamesWon + season.rounds[rd].seriesList[sr].teamTwoGamesWon)
-
-                gamesDone = 0
+                gamesDone = 0 # index of array that we are adding to
 
                 for date in range(0, len(playoffGamesJson["dates"])):
                     for gm in range(0, len(playoffGamesJson["dates"][date]["games"])):
@@ -307,9 +315,17 @@ def parsePlayoffs():
                             game.teamGameStatOne.goalsScored = gameJson["teams"]["home" if teamOneIsHome else "away"]["goals"]
                             game.teamGameStatTwo.goalsAttempted = gameJson["teams"]["away" if teamOneIsHome else "home"]["shotsOnGoal"]
                             game.teamGameStatTwo.goalsScored = gameJson["teams"]["away" if teamOneIsHome else "home"]["goals"]
-                            season.rounds[rd].seriesList[sr].games[gamesDone] = game
+                            try:
+                                season.rounds[rd].seriesList[sr].games[gamesDone] = game
+                            except IndexError as e:
+                                # print(rd)
+                                # print(sr)
+                                # print(gamesDone)
+                                # print(len(season.rounds))
+                                # print(len(season.rounds[rd].seriesList))
+                                # print(len(season.rounds[rd].seriesList[sr].games))
+                                print("IndexError")
                             gamesDone += 1
-
 
         out.output[seasonsDone] = season
         seasonsDone += 1
