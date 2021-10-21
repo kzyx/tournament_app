@@ -3,7 +3,7 @@ import 'package:graphview/GraphView.dart';
 import 'package:tournament_app/models/series.dart';
 import 'package:tournament_app/models/round.dart';
 
-/// Represents node in graph/tree generated using Playoffs object
+/// Represents node in graph/tree generated using the PlayoffSeason object.
 class PlayoffNode extends Node {
   late Series series;
   late int roundNum;
@@ -17,7 +17,7 @@ class PlayoffNode extends Node {
   }
 }
 
-/// Represents all the data for a single playoff season (rounds, series, games)
+/// Represents all the data for a single playoff season (rounds, series, games).
 class PlayoffSeason {
   PlayoffSeason({
     required this.seasonNum,
@@ -42,11 +42,13 @@ class PlayoffSeason {
         "rounds": List<dynamic>.from(rounds.map((x) => x.toJson())),
       };
 
-  int indexWhereSeriesMatches(int desiredRound, int desiredId) {
+  /// Takes [int]s desiredRound and desiredTeamId and finds the index in the
+  /// Play
+  int indexWhereSeriesMatches(int desiredRound, int desiredTeamId) {
     int indexOfMatchingRound =
         rounds.indexWhere((r) => r.roundNum == desiredRound);
     return rounds[indexOfMatchingRound]
         .seriesList
-        .indexWhere((s) => s.teamOne == desiredId || s.teamTwo == desiredId);
+        .indexWhere((s) => s.teamOne == desiredTeamId || s.teamTwo == desiredTeamId);
   }
 }

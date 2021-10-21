@@ -2,7 +2,7 @@ import 'package:tournament_app/models/enum.dart';
 import 'package:tournament_app/models/game.dart';
 import 'dart:convert';
 
-/// Represents a single series played in a round of a playoff season
+/// Represents a single series played in a round of a playoff season.
 class Series {
   Series({
     required this.shortName,

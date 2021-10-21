@@ -22,7 +22,7 @@ class TournamentBracket extends StatefulWidget {
 
 /// This is the private State class for the TournamentBracket.
 class _TournamentBracketState extends State<TournamentBracket> {
-  int currentRound = 5; // Set to 5 (i.e. playoffs over)
+  int _currentRound = 5; // Set to 5 (i.e. playoffs over)
   Graph _graph = Graph()..isTree = true;
   final BuchheimWalkerConfiguration _builder = BuchheimWalkerConfiguration();
   late Future<List<PlayoffSeason>> _playoffsFuture;
@@ -47,6 +47,7 @@ class _TournamentBracketState extends State<TournamentBracket> {
       ..orientation = (BuchheimWalkerConfiguration.ORIENTATION_RIGHT_LEFT);
 
     // Initialize controller for InteractiveViewer
+    // Basically sets up default zoom and such
     _controller = TransformationController();
     _controller.value = Matrix4.identity() * 0.8;
   }
@@ -91,14 +92,14 @@ class _TournamentBracketState extends State<TournamentBracket> {
               onPressed: () {
                 // Decrements round number if possible
                 setState(() {
-                  currentRound -= (currentRound >= 2) ? 1 : 0;
+                  _currentRound -= (_currentRound >= 2) ? 1 : 0;
                 });
               },
               backgroundColor: secondaryColor,
             ),
             SizedBox(
               child: Center(
-                  child: Text(currentRound.toString(), style: whiteTextStyle)),
+                  child: Text(_currentRound.toString(), style: whiteTextStyle)),
               width: 30.0,
             ),
             FloatingActionButton.extended(
@@ -106,7 +107,7 @@ class _TournamentBracketState extends State<TournamentBracket> {
               onPressed: () {
                 // Increments round number if possible
                 setState(() {
-                  currentRound += (currentRound <= 4) ? 1 : 0;
+                  _currentRound += (_currentRound <= 4) ? 1 : 0;
                 });
               },
               backgroundColor: secondaryColor,
@@ -143,7 +144,7 @@ class _TournamentBracketState extends State<TournamentBracket> {
                       ..style = PaintingStyle.stroke,
                     builder: (Node node) {
                       PlayoffNode playoffNode = node as PlayoffNode;
-                      playoffNode.currentRound = currentRound;
+                      playoffNode.currentRound = _currentRound;
                       return generateTournamentBracketNode(
                           playoffNode, context);
                     },

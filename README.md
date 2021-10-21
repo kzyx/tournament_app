@@ -1,9 +1,7 @@
 # tournament_app
 #### A Flutter app that allows you to look at historical NHL Playoff data, including game stats, highlights, etc.
 ###### *Work on this project began on Sept 8, 2021.*
-###### *The bulk of the work on this project was done between Sept 8-10, 2021.*
-###### *A few new features (additional game data, video highlights, etc) were added Sept 21-27, 2021.*
-###### *Page last updated Sept 27, 2021*
+###### *Page last updated Oct 21, 2021*
 ---
 ## Demo
 <!-- ![](http://g.recordit.co/OekR28IPjU.gif) -->
@@ -23,6 +21,9 @@ See game-specific data |  See round-by-round progression
 
 ## Design summary
 The initial version of this app queried the [statsapi.web.nhl.com](https://gitlab.com/dword4/nhlapi/-/blob/master/stats-api.md) API in order to retrieve playoff data for the desired season. There was about a ~2 second delay in loading a different playoff season. I wanted to query game data as well, but found that loading the desired data using queries would take several extra seconds (loading 7 games in a single series is tens of megabytes, as the server returns too much data and at least two different queries are needed to obtain game stats and highlights). I created a Python script that queries the NHL API and generates a JSON object with all the relevant information pre-loaded (game data including links to extended highlight videos, playoff data, etc). Generating this JSON takes about a minute per season. Then, this JSON is used by the app to display relevant playoff bracket data.
+
+Detailed information about the design is available in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Notice 
 
 ---
 # Installation

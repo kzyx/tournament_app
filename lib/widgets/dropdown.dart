@@ -24,7 +24,7 @@ class PlayoffYearDropdown extends StatefulWidget {
 /// This is the private State class for the dropdown.
 class _PlayoffYearDropdownState extends State<PlayoffYearDropdown> {
   // Default season value is 2018-2019. Options go from 2013-2014 to 2018-2019.
-  late String dropdownValue;
+  late String _dropdownValue;
   late final List<String> _playoffYearStrs;
 
   @override
@@ -39,13 +39,13 @@ class _PlayoffYearDropdownState extends State<PlayoffYearDropdown> {
         .map((e) =>
             e.toString().substring(0, 4) + '-' + e.toString().substring(4))
         .toList();
-    dropdownValue = _playoffYearStrs.last;
+    _dropdownValue = _playoffYearStrs.last;
   }
 
   @override
   Widget build(BuildContext context) {
     return DropdownButton<String>(
-      value: dropdownValue,
+      value: _dropdownValue,
       icon: const Icon(Icons.keyboard_arrow_down),
       iconSize: 24,
       elevation: 16,
@@ -66,15 +66,15 @@ class _PlayoffYearDropdownState extends State<PlayoffYearDropdown> {
     );
   }
 
-  /// If newValue doesn't equal old value, changes dropdown value and also
-  /// tells tournament bracket to regenerate the playoff graph
+  /// If [String] newValue doesn't equal old value, changes dropdown value and
+  /// also tells tournament bracket to regenerate the playoff graph
   void onDropdownSelect(String? newValue) {
-    if (newValue == dropdownValue) {
+    if (newValue == _dropdownValue) {
       return;
     }
     int season = int.parse(newValue!.substring(0, 4) + newValue.substring(5));
     setState(() {
-      dropdownValue = newValue;
+      _dropdownValue = newValue;
       widget.updateCurrentSeason(season);
     });
   }

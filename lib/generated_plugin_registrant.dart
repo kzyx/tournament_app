@@ -1,3 +1,6 @@
+/// This file generated_plugin_registrant.dart exists only to support the web.
+/// It exists if Flutter is web-enabled and there is at least one package that
+/// has asked for it.
 //
 // Generated file. Do not edit.
 //

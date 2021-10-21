@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-/// Represents a single game played in the playoffs
+/// Represents a single game played in the playoffs.
 class Game {
   Game({
     required this.gameId,
@@ -45,7 +45,7 @@ class Game {
       };
 }
 
-/// Represents the stats of a single team in a single game of the playoffs
+/// Represents the stats of a single team in a single game of the playoffs.
 class TeamGameStat {
   TeamGameStat({
     required this.goalsAttempted,

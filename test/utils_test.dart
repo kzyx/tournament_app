@@ -8,6 +8,7 @@ import 'package:graphview/GraphView.dart';
 void main() {
   setUpAll(() {
     // Needed to make sure that rootBundle call in loadPlayoffData doesn't fail
+    // during testing
     TestWidgetsFlutterBinding.ensureInitialized();
   });
   // Test loadPlayoffData function
@@ -19,8 +20,7 @@ void main() {
   test('toAwayAtHomeString() works for valid input, switchOrder = true', () {
     expect(utils.toAwayAtHomeString("TEAM1 vs. TEAM2", true), "TEAM1 @ TEAM2");
   });
-  test('toAwayAtHomeString() works for valid input, switchOrder = false',
-      () {
+  test('toAwayAtHomeString() works for valid input, switchOrder = false', () {
     expect(utils.toAwayAtHomeString("TEAM1 vs. TEAM2", false), "TEAM2 @ TEAM1");
   });
   test('toAwayAtHomeString() throws error for invalid input', () {
@@ -33,7 +33,7 @@ void main() {
   });
 
   // Test generatePlayoffGraph function
-  test('generatePlayoffGraph() throws error for != 15 nodes', () async {
+  test('generatePlayoffGraph() throws error for 13, 16 nodes', () async {
     List<PlayoffSeason> playoffs = await utils.loadAllPlayoffData();
     playoffs.last.rounds[0].seriesList
         .add(playoffs.last.rounds[0].seriesList.last);
@@ -44,8 +44,12 @@ void main() {
     expect(() => utils.generatePlayoffGraph(playoffs.last),
         throwsA(isA<InvalidInputException>()));
   });
-  test('generatePlayoffGraph() runs for valid input', () async {
+  test(
+      'generatePlayoffGraph() creates 15 vertex, 14 edge graph for valid input',
+      () async {
     List<PlayoffSeason> playoffs = await utils.loadAllPlayoffData();
-    expect(utils.generatePlayoffGraph(playoffs.last), isA<Graph>());
+    Graph graph = utils.generatePlayoffGraph(playoffs.last);
+    expect(graph.edges.length, 14);
+    expect(graph.nodeCount(), 15);
   });
 }

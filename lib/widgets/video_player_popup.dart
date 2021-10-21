@@ -8,11 +8,11 @@ import 'package:video_player/video_player.dart';
 /// Important point: The use of uniqueKey means that we only ever have one
 /// instance of this class.
 class VideoPlayerPopup extends StatefulWidget {
-  final String videoURL;
-  final UniqueKey uniqueKey;
+  final String _videoURL;
+  final UniqueKey _uniqueKey;
 
-  const VideoPlayerPopup(this.videoURL, this.uniqueKey)
-      : super(key: uniqueKey);
+  const VideoPlayerPopup(this._videoURL, this._uniqueKey)
+      : super(key: _uniqueKey);
   @override
   _VideoPlayerPopupState createState() => _VideoPlayerPopupState();
 }
@@ -26,7 +26,7 @@ class _VideoPlayerPopupState extends State<VideoPlayerPopup> {
   @override
   Widget build(BuildContext context) {
     // Establish link to URL, and then initialize.
-    _videoPlayerController = VideoPlayerController.network(widget.videoURL);
+    _videoPlayerController = VideoPlayerController.network(widget._videoURL);
     return FutureBuilder<void>(
         future: _videoPlayerController.initialize(),
         builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
