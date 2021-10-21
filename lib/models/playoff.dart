@@ -42,7 +42,7 @@ class PlayoffSeason {
         "rounds": List<dynamic>.from(rounds.map((x) => x.toJson())),
       };
 
-  int getIndexOfMatchingSeries(int desiredRound, int desiredId) {
+  int indexWhereSeriesMatches(int desiredRound, int desiredId) {
     int indexOfMatchingRound =
         rounds.indexWhere((r) => r.roundNum == desiredRound);
     return rounds[indexOfMatchingRound]

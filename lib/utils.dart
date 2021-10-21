@@ -18,19 +18,6 @@ Future<List<PlayoffSeason>> loadAllPlayoffData() async {
   return output;
 }
 
-/// Takes four [String] strA, strB, strC, strD and returns true if
-/// one of {strA, strB} equals {strC, strD}
-bool atLeastOneStringPairMatch(
-    String strA, String strB, String strC, String strD) {
-  return (strA == strC) || (strA == strD) || (strB == strC) || (strB == strD);
-}
-
-/// Takes four [int] intA, intB, intC, intD and returns true if
-/// one of {intA, intB} equals {intC, intD}
-bool atLeastOneIntPairMatch(int intA, int intB, int intC, int intD) {
-  return (intA == intC) || (intA == intD) || (intB == intC) || (intB == intD);
-}
-
 /// Takes a [String] of the form "XXX vs. YYY" and returns
 /// "XXX @ YYY" if the [bool] homeTeamIsFirst = true, and "YYY @ XXX" otherwise
 String toAwayAtHomeString(String input, bool homeTeamIsFirst) {
@@ -71,70 +58,62 @@ Graph generatePlayoffGraph(PlayoffSeason playoffSeason) {
       roundNum: 3);
 
   // Conference Semifinals (4 series) /////////////////
-  int idxWest1 = playoffSeason.getIndexOfMatchingSeries(2, rootW.series.teamOne);
-  int idxWest2 = playoffSeason.getIndexOfMatchingSeries(2, rootW.series.teamTwo);
-  int idxEast1 = playoffSeason.getIndexOfMatchingSeries(2, rootE.series.teamOne);
-  int idxEast2 = playoffSeason.getIndexOfMatchingSeries(2, rootE.series.teamTwo);
+  int idxW1 = playoffSeason.indexWhereSeriesMatches(2, rootW.series.teamOne);
+  int idxW2 = playoffSeason.indexWhereSeriesMatches(2, rootW.series.teamTwo);
+  int idxE1 = playoffSeason.indexWhereSeriesMatches(2, rootE.series.teamOne);
+  int idxE2 = playoffSeason.indexWhereSeriesMatches(2, rootE.series.teamTwo);
   Series seriesWest1 = playoffSeason.rounds
       .firstWhere((r) => r.roundNum == 2)
-      .seriesList[idxWest1];
+      .seriesList[idxW1];
   Series seriesWest2 = playoffSeason.rounds
       .firstWhere((r) => r.roundNum == 2)
-      .seriesList[idxWest2];
+      .seriesList[idxW2];
   Series seriesEast1 = playoffSeason.rounds
       .firstWhere((r) => r.roundNum == 2)
-      .seriesList[idxEast1];
+      .seriesList[idxE1];
   Series seriesEast2 = playoffSeason.rounds
       .firstWhere((r) => r.roundNum == 2)
-      .seriesList[idxEast2];
-  PlayoffNode rootWChild1 = PlayoffNode(id: 4, series: seriesWest1, roundNum: 2);
-  PlayoffNode rootWChild2 = PlayoffNode(id: 5, series: seriesWest2, roundNum: 2);
-  PlayoffNode rootEChild1 = PlayoffNode(id: 6, series: seriesEast1, roundNum: 2);
-  PlayoffNode rootEChild2 = PlayoffNode(id: 7, series: seriesEast2, roundNum: 2);
+      .seriesList[idxE2];
+  PlayoffNode rootW1 = PlayoffNode(id: 4, series: seriesWest1, roundNum: 2);
+  PlayoffNode rootW2 = PlayoffNode(id: 5, series: seriesWest2, roundNum: 2);
+  PlayoffNode rootE1 = PlayoffNode(id: 6, series: seriesEast1, roundNum: 2);
+  PlayoffNode rootE2 = PlayoffNode(id: 7, series: seriesEast2, roundNum: 2);
 
   // Conference Quarterfinals (8 series) //////////////
   // Find the next elements of the tree by looking for the series in round 1
   // with matching team names
-  int idxWestest11 =
-      playoffSeason.getIndexOfMatchingSeries(1, rootWChild1.series.teamOne);
-  int idxWest12 =
-      playoffSeason.getIndexOfMatchingSeries(1, rootWChild1.series.teamTwo);
-  int idxWest21 =
-      playoffSeason.getIndexOfMatchingSeries(1, rootWChild2.series.teamOne);
-  int idxWest22 =
-      playoffSeason.getIndexOfMatchingSeries(1, rootWChild2.series.teamTwo);
-  int idxEast11 =
-      playoffSeason.getIndexOfMatchingSeries(1, rootEChild1.series.teamOne);
-  int idxEast12 =
-      playoffSeason.getIndexOfMatchingSeries(1, rootEChild1.series.teamTwo);
-  int idxEast21 =
-      playoffSeason.getIndexOfMatchingSeries(1, rootEChild2.series.teamOne);
-  int idxEast22 =
-      playoffSeason.getIndexOfMatchingSeries(1, rootEChild2.series.teamTwo);
+  int idxW11 = playoffSeason.indexWhereSeriesMatches(1, rootW1.series.teamOne);
+  int idxW12 = playoffSeason.indexWhereSeriesMatches(1, rootW1.series.teamTwo);
+  int idxW21 = playoffSeason.indexWhereSeriesMatches(1, rootW2.series.teamOne);
+  int idxW22 = playoffSeason.indexWhereSeriesMatches(1, rootW2.series.teamTwo);
+  int idxE11 = playoffSeason.indexWhereSeriesMatches(1, rootE1.series.teamOne);
+  int idxE12 = playoffSeason.indexWhereSeriesMatches(1, rootE1.series.teamTwo);
+  int idxE21 = playoffSeason.indexWhereSeriesMatches(1, rootE2.series.teamOne);
+  int idxE22 = playoffSeason.indexWhereSeriesMatches(1, rootE2.series.teamTwo);
   Series seriesWest11 = playoffSeason.rounds
       .firstWhere((r) => r.roundNum == 1)
-      .seriesList[idxWestest11];
+      .seriesList[idxW11];
   Series seriesWest12 = playoffSeason.rounds
       .firstWhere((r) => r.roundNum == 1)
-      .seriesList[idxWest12];
+      .seriesList[idxW12];
   Series seriesWest21 = playoffSeason.rounds
       .firstWhere((r) => r.roundNum == 1)
-      .seriesList[idxWest21];
+      .seriesList[idxW21];
   Series seriesWest22 = playoffSeason.rounds
       .firstWhere((r) => r.roundNum == 1)
-      .seriesList[idxWest22];
+      .seriesList[idxW22];
   Series seriesEast11 = playoffSeason.rounds
       .firstWhere((r) => r.roundNum == 1)
-      .seriesList[idxEast11];
+      .seriesList[idxE11];
   Series seriesEast12 = playoffSeason.rounds
       .firstWhere((r) => r.roundNum == 1)
-      .seriesList[idxEast12];
+      .seriesList[idxE12];
   Series seriesEast21 = playoffSeason.rounds
       .firstWhere((r) => r.roundNum == 1)
-      .seriesList[idxEast21];
+      .seriesList[idxE21];
   Series seriesEast22 = playoffSeason.rounds
       .firstWhere((r) => r.roundNum == 1)
-      .seriesList[idxEast22];
+      .seriesList[idxE22];
   PlayoffNode rootWChild1Child1 =
       PlayoffNode(id: 8, series: seriesWest11, roundNum: 1);
   PlayoffNode rootWChild1Child2 =
@@ -160,30 +139,20 @@ Graph generatePlayoffGraph(PlayoffSeason playoffSeason) {
     ..style = PaintingStyle.stroke;
   graph.addEdge(root, rootW, paint: paint);
   graph.addEdge(root, rootE, paint: paint);
-  graph.addEdge(rootW, rootWChild1, paint: paint);
-  graph.addEdge(rootW, rootWChild2, paint: paint);
-  graph.addEdge(rootE, rootEChild1, paint: paint);
-  graph.addEdge(rootE, rootEChild2, paint: paint);
+  graph.addEdge(rootW, rootW1, paint: paint);
+  graph.addEdge(rootW, rootW2, paint: paint);
+  graph.addEdge(rootE, rootE1, paint: paint);
+  graph.addEdge(rootE, rootE2, paint: paint);
 
-  graph.addEdge(rootWChild1, rootWChild1Child1, paint: paint);
-  graph.addEdge(rootWChild1, rootWChild1Child2, paint: paint);
-  graph.addEdge(rootWChild2, rootWChild2Child1, paint: paint);
-  graph.addEdge(rootWChild2, rootWChild2Child2, paint: paint);
+  graph.addEdge(rootW1, rootWChild1Child1, paint: paint);
+  graph.addEdge(rootW1, rootWChild1Child2, paint: paint);
+  graph.addEdge(rootW2, rootWChild2Child1, paint: paint);
+  graph.addEdge(rootW2, rootWChild2Child2, paint: paint);
 
-  graph.addEdge(rootEChild1, rootEChild1Child1, paint: paint);
-  graph.addEdge(rootEChild1, rootEChild1Child2, paint: paint);
-  graph.addEdge(rootEChild2, rootEChild2Child1, paint: paint);
-  graph.addEdge(rootEChild2, rootEChild2Child2, paint: paint);
+  graph.addEdge(rootE1, rootEChild1Child1, paint: paint);
+  graph.addEdge(rootE1, rootEChild1Child2, paint: paint);
+  graph.addEdge(rootE2, rootEChild2Child1, paint: paint);
+  graph.addEdge(rootE2, rootEChild2Child2, paint: paint);
 
   return graph;
-}
-
-/// Returns list of all the playoff year numbers in _playoffs
-List<int> getAllPlayoffYearNumbers(List<PlayoffSeason> playoffs) {
-  List<int> output = [];
-  for (int i = 0; i < playoffs.length; i++) {
-    output.add(playoffs[i].seasonNum);
-  }
-  output.sort((int a, int b) => a.compareTo(b));
-  return output;
 }

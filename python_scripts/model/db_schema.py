@@ -39,7 +39,13 @@ class Series:
 class TeamGameStat:
     goalsAttempted = -1
     goalsScored = -1
-    # scoringPlayers = [] # FUTURE: Could add later on
+    penaltyMin = -1
+    powerPlayPercentage = 0.0
+    powerPlayGoals = -1
+    blocked = -1
+    takeaways = -1
+    giveaways = -1
+    hits = -1
 
 
 class Game:

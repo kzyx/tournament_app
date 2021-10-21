@@ -1,41 +1,43 @@
+/// This file contains classes and/or functions relating to the dropdown that
+/// allows the user to select a different playoff season. When the user makes
+/// a new selection, the playoff graph is regenerated.
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:tournament_app/widgets/tournament_bracket.dart';
 
 /// This widget is for the dropdown that shows options for playoff seasons
-class PlayoffsYearDropdown extends StatefulWidget {
-  late List<int> playoffsYearNums;
+class PlayoffYearDropdown extends StatefulWidget {
+  late List<int> playoffYearNums;
 
-  PlayoffsYearDropdown({Key? key, required List<int> playoffsYearNums})
+  PlayoffYearDropdown({Key? key, required List<int> playoffYearNums})
       : super(key: key) {
-    this.playoffsYearNums = playoffsYearNums;
+    this.playoffYearNums = playoffYearNums;
   }
 
   @override
-  State<PlayoffsYearDropdown> createState() => _PlayoffsYearDropdownState();
+  State<PlayoffYearDropdown> createState() => _PlayoffYearDropdownState();
 }
 
 /// This is the private State class for the dropdown
-class _PlayoffsYearDropdownState extends State<PlayoffsYearDropdown> {
+class _PlayoffYearDropdownState extends State<PlayoffYearDropdown> {
   // Default season value is 2018-2019. Options go from 2013-2014 to 2018-2019.
   late String dropdownValue;
-  late final List<int> playoffsYearNums;
-  late final List<String> playoffsYearStrs;
+  late final List<int> playoffYearNums;
+  late final List<String> playoffYearStrs;
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    if (widget.playoffsYearNums.isEmpty) {
+    if (widget.playoffYearNums.isEmpty) {
       throw Exception("Cannot build playoff dropdown with zero options");
     }
-    playoffsYearNums = widget.playoffsYearNums;
-    List<String> temp = [];
-    playoffsYearNums.forEach((e) {
-      temp.add(e.toString().substring(0, 4) + '-' + e.toString().substring(4));
-    });
-    playoffsYearStrs = temp;
-    dropdownValue = playoffsYearStrs.last;
+    playoffYearNums = widget.playoffYearNums;
+    // Create string list of options (e.g. "2012-2013")
+    playoffYearStrs = playoffYearNums
+        .map((e) =>
+            e.toString().substring(0, 4) + '-' + e.toString().substring(4))
+        .toList();
+    dropdownValue = playoffYearStrs.last;
   }
 
   @override
@@ -52,26 +54,26 @@ class _PlayoffsYearDropdownState extends State<PlayoffsYearDropdown> {
         color: Colors.deepPurpleAccent,
       ),
       dropdownColor: Colors.blue,
-      onChanged: (String? newValue) {
-        // Update selected playoff year and make the playoff bracket update
-        if (newValue == dropdownValue) {
-          return;
-        }
-        int season =
-            int.parse(newValue!.substring(0, 4) + newValue.substring(5));
-        setState(() {
-          dropdownValue = newValue;
-          treeViewPageKey.currentState!.updateCurrentSeason(season);
-
-          // treeViewPageKey.currentState!.finishedLoading = false;
-        });
-      },
-      items: playoffsYearStrs.map((playoffsYear) {
+      onChanged: onDropdownSelect,
+      items: playoffYearStrs.map((playoffsYear) {
         return DropdownMenuItem<String>(
           value: playoffsYear,
           child: Text(playoffsYear),
         );
       }).toList(),
     );
+  }
+
+  /// If newValue doesn't equal old value, changes dropdown value and also
+  /// tells tournament bracket to regenerate the playoff graph
+  void onDropdownSelect(String? newValue) {
+    if (newValue == dropdownValue) {
+      return;
+    }
+    int season = int.parse(newValue!.substring(0, 4) + newValue.substring(5));
+    setState(() {
+      dropdownValue = newValue;
+      tournamentBracketKey.currentState!.updateCurrentSeason(season);
+    });
   }
 }

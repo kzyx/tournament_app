@@ -7,6 +7,13 @@ from marshmallow import Schema, fields
 class TeamGameStatSchema(Schema):
     goalsAttempted = fields.Int()
     goalsScored = fields.Int()
+    penaltyMin = fields.Int()
+    powerPlayPercentage = fields.Float()
+    powerPlayGoals = fields.Int()
+    blocked = fields.Int()
+    takeaways = fields.Int()
+    giveaways = fields.Int()
+    hits = fields.Int()
 
 
 class GameSchema(Schema):

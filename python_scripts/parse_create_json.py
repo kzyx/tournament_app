@@ -11,15 +11,16 @@ roundNumberToName = {1:'Conference Quarterfinals', 2:'Conference Semifinals',\
                      3:'Conference Finals', 4:'Stanley Cup Finals'}
 roundNumberToSeriesNumber = {1:8, 2: 4, 3: 2, 4:1} # maps round -> # of series in round
 
-def parsePlayoffs(startYear=1997, endYear=2000):
+def parsePlayoffs(startYear=2002, endYear=2020):
     '''
         Generates a JSON object containing the data for the NHL seasons
-        [startYear-starYear+1, ..., endYear-1, endYear].
+        [startYear-(starYear+1), ..., (endYear-1)-endYear].
         Currently skips problematic seasons such as the 2004-2005 lockout.
         This JSON is saved in 'assets/data'.
     '''
 
     if (startYear <= 1995):
+        # Prior to 2002, missing lots of team stats
         raise "Entered season is not currently supported"
 
     startTime = time.time()
@@ -147,13 +148,28 @@ def parsePlayoffs(startYear=1997, endYear=2000):
 
 
                             # Make call to get linescore
-                            gameURL = 'https://statsapi.web.nhl.com/api/v1/game/{}/linescore'.format(gameId)
+                            gameURL = 'https://statsapi.web.nhl.com/api/v1/game/{}/boxscore'.format(gameId)
                             gameResp = requests.get(gameURL)
                             gameJson = gameResp.json()
-                            game.teamGameStatOne.goalsAttempted = gameJson["teams"]["home" if teamOneIsHome else "away"]["shotsOnGoal"]
-                            game.teamGameStatOne.goalsScored = gameJson["teams"]["home" if teamOneIsHome else "away"]["goals"]
-                            game.teamGameStatTwo.goalsAttempted = gameJson["teams"]["away" if teamOneIsHome else "home"]["shotsOnGoal"]
-                            game.teamGameStatTwo.goalsScored = gameJson["teams"]["away" if teamOneIsHome else "home"]["goals"]
+                            game.teamGameStatOne.goalsAttempted = gameJson["teams"]["home" if teamOneIsHome else "away"]["teamStats"]["teamSkaterStats"]["shots"]
+                            game.teamGameStatOne.goalsScored = gameJson["teams"]["home" if teamOneIsHome else "away"]["teamStats"]["teamSkaterStats"]["goals"]
+                            game.teamGameStatOne.penaltyMin = gameJson["teams"]["home" if teamOneIsHome else "away"]["teamStats"]["teamSkaterStats"]["pim"]
+                            game.teamGameStatOne.powerPlayPercentage = gameJson["teams"]["home" if teamOneIsHome else "away"]["teamStats"]["teamSkaterStats"]["powerPlayPercentage"]
+                            game.teamGameStatOne.powerPlayGoals = gameJson["teams"]["home" if teamOneIsHome else "away"]["teamStats"]["teamSkaterStats"]["powerPlayGoals"]
+                            game.teamGameStatOne.blocked = gameJson["teams"]["home" if teamOneIsHome else "away"]["teamStats"]["teamSkaterStats"]["blocked"]
+                            game.teamGameStatOne.takeaways = gameJson["teams"]["home" if teamOneIsHome else "away"]["teamStats"]["teamSkaterStats"]["takeaways"]
+                            game.teamGameStatOne.giveaways = gameJson["teams"]["home" if teamOneIsHome else "away"]["teamStats"]["teamSkaterStats"]["giveaways"]
+                            game.teamGameStatOne.hits = gameJson["teams"]["home" if teamOneIsHome else "away"]["teamStats"]["teamSkaterStats"]["hits"]
+
+                            game.teamGameStatTwo.goalsAttempted = gameJson["teams"]["away" if teamOneIsHome else "home"]["teamStats"]["teamSkaterStats"]["shots"]
+                            game.teamGameStatTwo.goalsScored = gameJson["teams"]["away" if teamOneIsHome else "home"]["teamStats"]["teamSkaterStats"]["goals"]
+                            game.teamGameStatTwo.penaltyMin = gameJson["teams"]["away" if teamOneIsHome else "home"]["teamStats"]["teamSkaterStats"]["pim"]
+                            game.teamGameStatTwo.powerPlayPercentage = gameJson["teams"]["away" if teamOneIsHome else "home"]["teamStats"]["teamSkaterStats"]["powerPlayPercentage"]
+                            game.teamGameStatTwo.powerPlayGoals = gameJson["teams"]["away" if teamOneIsHome else "home"]["teamStats"]["teamSkaterStats"]["powerPlayGoals"]
+                            game.teamGameStatTwo.blocked = gameJson["teams"]["away" if teamOneIsHome else "home"]["teamStats"]["teamSkaterStats"]["blocked"]
+                            game.teamGameStatTwo.takeaways = gameJson["teams"]["away" if teamOneIsHome else "home"]["teamStats"]["teamSkaterStats"]["takeaways"]
+                            game.teamGameStatTwo.giveaways = gameJson["teams"]["away" if teamOneIsHome else "home"]["teamStats"]["teamSkaterStats"]["giveaways"]
+                            game.teamGameStatTwo.hits = gameJson["teams"]["away" if teamOneIsHome else "home"]["teamStats"]["teamSkaterStats"]["hits"]
                             try:
                                 season.rounds[rd].seriesList[sr].games[gamesDone] = game
                             except IndexError as e:

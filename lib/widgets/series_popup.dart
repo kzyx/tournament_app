@@ -1,46 +1,48 @@
-/// This file contains a class which represents the popup that is opened
-/// when you press on a series in the playoff graph. In this popup, the user
-/// can see stats/info for each game played in the series.
-
+/// This file contains functions and/or classes which represents the popup
+/// that is opened when you press on a series in the playoff graph. In this
+/// popup, the user can see stats/info for each game played in the series.
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:tournament_app/models/all.dart';
-import 'package:tournament_app/utils.dart' as Utils;
-import 'package:tournament_app/widgets/video_player_popup.dart';
+import 'package:tournament_app/utils.dart' as utils;
 import 'package:tournament_app/styles.dart';
+import 'package:tournament_app/widgets/series_popup_table.dart';
 
-/// This class represents a single game in the series list popup
+/// This class represents one entry of the ExpandableList that stores all the
+/// games in the SeriesPopup class.
 class GameElement {
   GameElement({
     required this.gameIndex,
-    required this.headerValue,
+    required this.gameTitle,
     this.isExpanded = false,
   });
 
-  int gameIndex;
-  String headerValue;
+  int gameIndex; // represents index of corresponding game in series.games
+  String gameTitle; // e.g. "Game 1"
   bool isExpanded;
 }
 
-/// This widget is for the popup opened when you click a series for more info
+/// This widget is for the popup opened when you click a series for more info.
 class SeriesPopup extends StatefulWidget {
   final Series series;
 
   const SeriesPopup({Key? key, required this.series}) : super(key: key);
 
   @override
-  State<SeriesPopup> createState() => _SeriesPopupState(this.series);
+  State<SeriesPopup> createState() => _SeriesPopupState(series);
 }
 
-/// This is the private State class for the SeriesPopup
+/// This is the private State class for the SeriesPopup.
 class _SeriesPopupState extends State<SeriesPopup> {
   late Series series;
   late List<GameElement> _data;
 
   _SeriesPopupState(this.series) {
+    // Determine number of games played and make an expandable list with
+    // a corresponding number of entries
     int numberOfGames = series.teamOneGamesWon + series.teamTwoGamesWon;
     _data = List<GameElement>.generate(numberOfGames,
-        (i) => GameElement(gameIndex: i, headerValue: 'Game ${(i + 1)}'));
+        (i) => GameElement(gameIndex: i, gameTitle: 'Game ${(i + 1)}'));
   }
 
   @override
@@ -54,6 +56,7 @@ class _SeriesPopupState extends State<SeriesPopup> {
 
   Widget _buildPanel() {
     return ExpansionPanelList(
+      // Toggle expanded when header is pressed
       expansionCallback: (int index, bool isExpanded) {
         setState(() {
           _data[index].isExpanded = !isExpanded;
@@ -61,34 +64,28 @@ class _SeriesPopupState extends State<SeriesPopup> {
       },
       children: _data.map<ExpansionPanel>((GameElement item) {
         // Determine which team was home and which team was away, and
-        // show their stats appropriately.
-        int homeTeam = series.games[item.gameIndex].homeTeamId;
-        bool homeTeamIsFirst = (series.teamOne == homeTeam);
+        // show their stats appropriately (we want AWAY on left, HOME on right)
+        int homeTeamId = series.games[item.gameIndex].homeTeamId;
+        bool homeTeamIsFirst = (series.teamOne == homeTeamId);
+        int awayTeamId = (homeTeamIsFirst) ? series.teamTwo : series.teamOne;
 
-        TeamGameStat team1 = homeTeamIsFirst
+        TeamGameStat teamOneStat = homeTeamIsFirst
             ? series.games[item.gameIndex].teamGameStatOne
             : series.games[item.gameIndex].teamGameStatTwo;
-        TeamGameStat team2 = homeTeamIsFirst
+        TeamGameStat teamTwoStat = homeTeamIsFirst
             ? series.games[item.gameIndex].teamGameStatTwo
             : series.games[item.gameIndex].teamGameStatOne;
 
-        int scoredOne = team1.goalsScored;
-        int attemptsOne = team1.goalsAttempted;
-        int scoredTwo = team2.goalsScored;
-        int attemptsTwo = team2.goalsAttempted;
-
-        double savedPercentOne = (1 - (scoredTwo) / (attemptsTwo)) * 100;
-        double savedPercentTwo = (1 - (scoredOne) / (attemptsOne)) * 100;
-
         // Determine whether the game has highlights. Old games in particular
-        // don't have highlights (e.g. 2010 NHL playoff games).
+        // don't have highlights available (e.g. 2007 NHL playoff games).
         bool showHighlights = series.games[item.gameIndex].highlights != "N/A";
 
         return ExpansionPanel(
-          backgroundColor: Colors.teal,
+          canTapOnHeader: true, // Allows expansion on tap anywhere on header
+          backgroundColor: primaryColor,
           headerBuilder: (BuildContext context, bool isExpanded) {
             return ListTile(
-              title: Text(item.headerValue, style: whiteBoldText),
+              title: Text(item.gameTitle, style: whiteTextStyle),
             );
           },
           body: Column(
@@ -96,104 +93,63 @@ class _SeriesPopupState extends State<SeriesPopup> {
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 Container(
-                    padding: EdgeInsets.only(left: 5, right: 5),
+                    padding: const EdgeInsets.only(left: 5, right: 5),
                     child: Table(
-                      // border: TableBorder.,
                       columnWidths: const <int, TableColumnWidth>{
-                        0: FlexColumnWidth(),
-                        1: FlexColumnWidth(),
-                        2: FlexColumnWidth(),
+                        0: FlexColumnWidth(0.8),
+                        1: FlexColumnWidth(1), // Middle text column is bigger
+                        2: FlexColumnWidth(0.8),
                       },
                       defaultVerticalAlignment:
                           TableCellVerticalAlignment.middle,
-                      children: <TableRow>[
-                        TableRow(
-                          children: [
-                            Center(
-                                child: Image(
-                              image: AssetImage(
-                                  "assets/img/team_${homeTeamIsFirst ? series.teamOne : series.teamTwo}.png"),
-                              width: 70,
-                              height: 70,
-                            )),
-                            Center(
-                                child: Column(children: <Widget>[
-                              Text(
-                                  Utils.toAwayAtHomeString(
-                                      series.shortName, homeTeamIsFirst),
-                                  style: whiteBoldText),
-                            ])),
-                            Center(
-                                child: Image(
-                              image: AssetImage(
-                                  "assets/img/team_${homeTeamIsFirst ? series.teamTwo : series.teamOne}.png"),
-                              width: 70,
-                              height: 70,
-                            ))
-                          ],
-                        ),
-                        TableRow(
-                          children: [
-                            Center(
-                                child: Text(scoredOne.toString(),
-                                    style: whiteBoldText)),
-                            Center(child: Text("Goals", style: whiteBoldText)),
-                            Center(
-                                child: Text(scoredTwo.toString(),
-                                    style: whiteBoldText)),
-                          ],
-                        ),
-                        TableRow(
-                          decoration: const BoxDecoration(),
-                          children: <Widget>[
-                            Center(
-                                child: Text(attemptsOne.toString(),
-                                    style: whiteBoldText)),
-                            Center(
-                                child: Text("Shots on goal",
-                                    style: whiteBoldText)),
-                            Center(
-                                child: Text(attemptsTwo.toString(),
-                                    style: whiteBoldText)),
-                          ],
-                        ),
-                        TableRow(
-                          decoration: const BoxDecoration(),
-                          children: <Widget>[
-                            Center(
-                                child: Text(
-                                    savedPercentOne.toStringAsFixed(1) + "%",
-                                    style: whiteBoldText)),
-                            Center(child: Text("Save %", style: whiteBoldText)),
-                            Center(
-                                child: Text(
-                                    savedPercentTwo.toStringAsFixed(1) + "%",
-                                    style: whiteBoldText)),
-                          ],
-                        ),
+                      children: [
+                        generateSeriesPopupHeaderRow(
+                            utils.toAwayAtHomeString(
+                                series.shortName, homeTeamIsFirst),
+                            homeTeamId,
+                            awayTeamId),
+                        generateSeriesPopupDataRow(
+                            "Goals",
+                            teamOneStat.goalsScored.toString(),
+                            teamTwoStat.goalsScored.toString()),
+                        generateSeriesPopupDataRow(
+                            "Shots taken",
+                            teamOneStat.goalsAttempted.toString(),
+                            teamTwoStat.goalsAttempted.toString()),
+                        generateSeriesPopupDataRow(
+                            "Shots blocked",
+                            teamOneStat.blocked.toString(),
+                            teamTwoStat.blocked.toString()),
+                        generateSeriesPopupDataRow(
+                            "PP Goals",
+                            teamOneStat.powerPlayGoals.toString(),
+                            teamTwoStat.powerPlayGoals.toString()),
+                        generateSeriesPopupDataRow(
+                            "PP Percentage",
+                            teamOneStat.powerPlayPercentage.toString() + "%",
+                            teamTwoStat.powerPlayPercentage.toString() + "%"),
+                        generateSeriesPopupDataRow(
+                            "Hits",
+                            teamOneStat.hits.toString(),
+                            teamTwoStat.hits.toString()),
+                        generateSeriesPopupDataRow(
+                            "Penalty min",
+                            teamOneStat.penaltyMin.toString(),
+                            teamTwoStat.penaltyMin.toString()),
+                        generateSeriesPopupDataRow(
+                            "Takeaways",
+                            teamOneStat.takeaways.toString(),
+                            teamTwoStat.takeaways.toString()),
+                        generateSeriesPopupDataRow(
+                            "Giveaways",
+                            teamOneStat.giveaways.toString(),
+                            teamTwoStat.giveaways.toString()),
                       ],
                     )),
-                const SizedBox(height: 30),
+                const SizedBox(height: 20),
                 if (showHighlights) ...[
-                  ListTile(
-                      title: const Text("Watch highlights",
-                          style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white)),
-                      // subtitle: const Text(
-                      //     'To delete this panel, tap the trash can icon'),
-                      trailing: const Icon(Icons.video_collection),
-                      onTap: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return VideoPlayerPopup(
-                                series.games[item.gameIndex].highlights,
-                                UniqueKey());
-                          },
-                        );
-                      })
+                  generateSeriesPopupHighlightButton(
+                      context, series.games[item.gameIndex].highlights)
                 ]
               ]),
           isExpanded: item.isExpanded,

@@ -1,36 +1,40 @@
+/// This file contains classes and/or functions relating to the video player
+/// that we use in this app to play highlight footage from selected games.
 import 'package:flutter/material.dart';
 import 'package:chewie/chewie.dart';
 import 'package:video_player/video_player.dart';
 
-/// This represents a video player widget popup that utilizes the Chewie player
+/// This represents a video player widget popup that utilizes the Chewie player.
+/// Important point: Since it passes the Uni
 class VideoPlayerPopup extends StatefulWidget {
-  final String videoLink;
-  final UniqueKey newKey;
+  final String videoURL;
+  final UniqueKey uniqueKey;
 
-  VideoPlayerPopup(this.videoLink, this.newKey) : super(key: newKey);
+  const VideoPlayerPopup(this.videoURL, this.uniqueKey)
+      : super(key: uniqueKey);
   @override
   _VideoPlayerPopupState createState() => _VideoPlayerPopupState();
 }
 
-/// This is the private State class for the VideoPlayerPopup
+/// This is the private State class for the VideoPlayerPopup.
 class _VideoPlayerPopupState extends State<VideoPlayerPopup> {
-  late VideoPlayerController _vpCtrl;
-  late ChewieController _chewCtrl;
-  late Chewie _chew;
+  late VideoPlayerController _videoPlayerController;
+  late ChewieController _chewieController;
+  late Chewie _chewie;
 
   @override
   Widget build(BuildContext context) {
     // Establish link to URL, and then initialize.
-    _vpCtrl = VideoPlayerController.network(widget.videoLink);
+    _videoPlayerController = VideoPlayerController.network(widget.videoURL);
     return FutureBuilder<void>(
-        future: _vpCtrl.initialize(),
+        future: _videoPlayerController.initialize(),
         builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
-          _chewCtrl = ChewieController(
-            videoPlayerController: _vpCtrl,
+          _chewieController = ChewieController(
+            videoPlayerController: _videoPlayerController,
             autoPlay: false,
             looping: false,
           );
-          _chew = Chewie(controller: _chewCtrl);
+          _chewie = Chewie(controller: _chewieController);
           return Dialog(
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(80)),
@@ -39,18 +43,19 @@ class _VideoPlayerPopupState extends State<VideoPlayerPopup> {
               child: Padding(
                   padding: const EdgeInsets.all(10),
                   child: SizedBox(
-                    width: _vpCtrl.value.size.width,
-                    height: _vpCtrl.value.size.height * 0.5,
+                    width: _videoPlayerController.value.size.width,
+                    height: _videoPlayerController.value.size.height * 0.5,
                     child: ClipRRect(
-                        borderRadius: BorderRadius.circular(15), child: _chew),
+                        borderRadius: BorderRadius.circular(15),
+                        child: _chewie),
                   )));
         });
   }
 
   @override
   void dispose() {
-    _chewCtrl.dispose();
-    _vpCtrl.dispose();
+    _chewieController.dispose();
+    _videoPlayerController.dispose();
     super.dispose();
   }
 }

@@ -50,10 +50,24 @@ class TeamGameStat {
   TeamGameStat({
     required this.goalsAttempted,
     required this.goalsScored,
+    required this.penaltyMin,
+    required this.powerPlayPercentage,
+    required this.powerPlayGoals,
+    required this.blocked,
+    required this.takeaways,
+    required this.giveaways,
+    required this.hits,
   });
 
   int goalsAttempted;
   int goalsScored;
+  int penaltyMin;
+  double powerPlayPercentage;
+  int powerPlayGoals;
+  int blocked;
+  int takeaways;
+  int giveaways;
+  int hits;
 
   factory TeamGameStat.fromRawJson(String str) =>
       TeamGameStat.fromJson(json.decode(str));
@@ -63,10 +77,24 @@ class TeamGameStat {
   factory TeamGameStat.fromJson(Map<String, dynamic> json) => TeamGameStat(
         goalsAttempted: json["goalsAttempted"],
         goalsScored: json["goalsScored"],
+        penaltyMin: json["penaltyMin"],
+        powerPlayPercentage: json["powerPlayPercentage"],
+        powerPlayGoals: json["powerPlayGoals"],
+        blocked: json["blocked"],
+        takeaways: json["takeaways"],
+        giveaways: json["giveaways"],
+        hits: json["hits"],
       );
 
   Map<String, dynamic> toJson() => {
         "goalsAttempted": goalsAttempted,
         "goalsScored": goalsScored,
+        "penaltyMin": penaltyMin,
+        "powerPlayPercentage": powerPlayPercentage,
+        "powerPlayGoals": powerPlayGoals,
+        "blocked": blocked,
+        "takeaways": takeaways,
+        "giveaways": giveaways,
+        "hits": hits,
       };
 }
