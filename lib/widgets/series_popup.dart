@@ -54,7 +54,9 @@ class _SeriesPopupState extends State<SeriesPopup> {
     );
   }
 
-  Widget _buildPanel() {
+  /// Returns [ExpansionPanelList] that holds information about all the games
+  /// played in the series.
+  ExpansionPanelList _buildPanel() {
     return ExpansionPanelList(
       // Toggle expanded when header is pressed
       expansionCallback: (int index, bool isExpanded) {
@@ -69,12 +71,12 @@ class _SeriesPopupState extends State<SeriesPopup> {
         bool homeTeamIsFirst = (series.teamOne == homeTeamId);
         int awayTeamId = (homeTeamIsFirst) ? series.teamTwo : series.teamOne;
 
-        TeamGameStat teamOneStat = homeTeamIsFirst
-            ? series.games[item.gameIndex].teamGameStatOne
-            : series.games[item.gameIndex].teamGameStatTwo;
-        TeamGameStat teamTwoStat = homeTeamIsFirst
+        TeamGameStat awayTeamStat = homeTeamIsFirst
             ? series.games[item.gameIndex].teamGameStatTwo
             : series.games[item.gameIndex].teamGameStatOne;
+        TeamGameStat homeTeamStat = homeTeamIsFirst
+            ? series.games[item.gameIndex].teamGameStatOne
+            : series.games[item.gameIndex].teamGameStatTwo;
 
         // Determine whether the game has highlights. Old games in particular
         // don't have highlights available (e.g. 2007 NHL playoff games).
@@ -94,58 +96,13 @@ class _SeriesPopupState extends State<SeriesPopup> {
               children: <Widget>[
                 Container(
                     padding: const EdgeInsets.only(left: 5, right: 5),
-                    child: Table(
-                      columnWidths: const <int, TableColumnWidth>{
-                        0: FlexColumnWidth(0.8),
-                        1: FlexColumnWidth(1), // Middle text column is bigger
-                        2: FlexColumnWidth(0.8),
-                      },
-                      defaultVerticalAlignment:
-                          TableCellVerticalAlignment.middle,
-                      children: [
-                        generateSeriesPopupHeaderRow(
-                            utils.toAwayAtHomeString(
-                                series.shortName, homeTeamIsFirst),
-                            homeTeamId,
-                            awayTeamId),
-                        generateSeriesPopupDataRow(
-                            "Goals",
-                            teamOneStat.goalsScored.toString(),
-                            teamTwoStat.goalsScored.toString()),
-                        generateSeriesPopupDataRow(
-                            "Shots taken",
-                            teamOneStat.goalsAttempted.toString(),
-                            teamTwoStat.goalsAttempted.toString()),
-                        generateSeriesPopupDataRow(
-                            "Shots blocked",
-                            teamOneStat.blocked.toString(),
-                            teamTwoStat.blocked.toString()),
-                        generateSeriesPopupDataRow(
-                            "PP Goals",
-                            teamOneStat.powerPlayGoals.toString(),
-                            teamTwoStat.powerPlayGoals.toString()),
-                        generateSeriesPopupDataRow(
-                            "PP Percentage",
-                            teamOneStat.powerPlayPercentage.toString() + "%",
-                            teamTwoStat.powerPlayPercentage.toString() + "%"),
-                        generateSeriesPopupDataRow(
-                            "Hits",
-                            teamOneStat.hits.toString(),
-                            teamTwoStat.hits.toString()),
-                        generateSeriesPopupDataRow(
-                            "Penalty min",
-                            teamOneStat.penaltyMin.toString(),
-                            teamTwoStat.penaltyMin.toString()),
-                        generateSeriesPopupDataRow(
-                            "Takeaways",
-                            teamOneStat.takeaways.toString(),
-                            teamTwoStat.takeaways.toString()),
-                        generateSeriesPopupDataRow(
-                            "Giveaways",
-                            teamOneStat.giveaways.toString(),
-                            teamTwoStat.giveaways.toString()),
-                      ],
-                    )),
+                    child: generateSeriesPopupTable(
+                        utils.toAwayAtHomeString(
+                            series.shortName, homeTeamIsFirst),
+                        homeTeamId,
+                        awayTeamId,
+                        awayTeamStat,
+                        homeTeamStat)),
                 const SizedBox(height: 20),
                 if (showHighlights) ...[
                   generateSeriesPopupHighlightButton(

@@ -33,7 +33,7 @@ Widget generateTournamentBracketNode(
             (playoffNode.currentRound >= playoffNode.roundNum) ? 1.00 : 0.00,
         duration: const Duration(milliseconds: 500),
         child: Container(
-          padding: EdgeInsets.all(4),
+          padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
             boxShadow: const [

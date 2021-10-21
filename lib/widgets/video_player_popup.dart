@@ -5,7 +5,8 @@ import 'package:chewie/chewie.dart';
 import 'package:video_player/video_player.dart';
 
 /// This represents a video player widget popup that utilizes the Chewie player.
-/// Important point: Since it passes the Uni
+/// Important point: The use of uniqueKey means that we only ever have one
+/// instance of this class.
 class VideoPlayerPopup extends StatefulWidget {
   final String videoURL;
   final UniqueKey uniqueKey;

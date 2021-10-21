@@ -12,11 +12,6 @@ import 'package:tournament_app/widgets/tournament_bracket_node.dart';
 import 'package:tournament_app/widgets/loading_screen.dart';
 import 'package:tournament_app/styles.dart';
 
-// Key allows Dropdown widget to call method inside TreeViewPage.
-// In some languages the use of global variables is frowned upon, so in the
-// future it could be advisable to replace this.
-GlobalKey<_TournamentBracketState> tournamentBracketKey = GlobalKey();
-
 /// This widget is for the page with the NHL Tournament Bracket.
 class TournamentBracket extends StatefulWidget {
   const TournamentBracket({Key? key}) : super(key: key);
@@ -81,11 +76,15 @@ class _TournamentBracketState extends State<TournamentBracket> {
     List<int> playoffYearNums = _playoffs.map((e) => e.seasonNum).toList();
     playoffYearNums.sort();
     return AppBar(
+      backgroundColor: primaryColor,
       title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            PlayoffYearDropdown(playoffYearNums: playoffYearNums),
+            PlayoffYearDropdown(
+              playoffYearNums: playoffYearNums,
+              updateCurrentSeason: updateCurrentSeason,
+            ),
             const SizedBox(width: 10),
             FloatingActionButton.extended(
               label: const Text("Prev\nRound", style: whiteTextStyle),

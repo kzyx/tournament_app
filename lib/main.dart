@@ -13,7 +13,7 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-        home: TournamentBracket(key: tournamentBracketKey),
+        home: const TournamentBracket(),
         theme: ThemeData(
           fontFamily: defaultFont,
         ),

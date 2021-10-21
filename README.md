@@ -7,7 +7,10 @@
 ---
 ## Demo
 <!-- ![](http://g.recordit.co/OekR28IPjU.gif) -->
-<img src="demo.gif" width="400"/>
+See game-specific data |  See round-by-round progression
+:---------------------:|:-------------------------------:
+![](demoSeries.gif)    |   ![](demoRounds.gif)
+---
 
 ---
  # Features

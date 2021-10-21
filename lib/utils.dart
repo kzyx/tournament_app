@@ -4,29 +4,38 @@ import 'package:flutter/services.dart';
 import 'package:tournament_app/models/all.dart';
 import 'package:flutter/material.dart';
 import 'package:graphview/GraphView.dart';
+import 'package:tournament_app/exceptions.dart';
 
 /// Loads all the playoff data from the JSON in the assets folder
 /// Returns [List<PlayoffSeason>] if asset found, else throws exception
 Future<List<PlayoffSeason>> loadAllPlayoffData() async {
-  String jsonData = await rootBundle.loadString('assets/data/playoffData.json');
-  Map<String, dynamic> jsonMap = json.decode(jsonData);
-  List<dynamic> data = jsonMap["output"];
-  List<PlayoffSeason> output = [];
-  for (var value in data) {
-    output.add(PlayoffSeason.fromJson(value as Map<String, dynamic>));
-  }
-  return output;
+    String jsonData = await rootBundle.loadString(
+        'assets/data/playoffData.json');
+    Map<String, dynamic> jsonMap = json.decode(jsonData);
+    List<dynamic> data = jsonMap["output"];
+    List<PlayoffSeason> output = [];
+    for (var value in data) {
+      output.add(PlayoffSeason.fromJson(value as Map<String, dynamic>));
+    }
+    return output;
 }
 
 /// Takes a [String] of the form "XXX vs. YYY" and returns
-/// "XXX @ YYY" if the [bool] homeTeamIsFirst = true, and "YYY @ XXX" otherwise
+/// "XXX @ YYY" if the [bool] homeTeamIsFirst = true, and "YYY @ XXX" otherwise.
+/// Throws [InvalidInputException] if input string found to be invalid
 String toAwayAtHomeString(String input, bool homeTeamIsFirst) {
-  if (homeTeamIsFirst) {
-    return input.replaceAll("vs.", "@");
+  if (input.contains(" vs. ")) {
+    if (homeTeamIsFirst) {
+      return input.replaceAll(" vs. ", " @ ");
+    } else {
+      List<String> splitList = input.split(" vs. ");
+      if (splitList.length != 2 || splitList[0].isEmpty || splitList[1].isEmpty) {
+        throw InvalidInputException("");
+      }
+      return splitList[1] + " @ " + splitList[0];
+    }
   } else {
-    String home = input.substring(0, 3);
-    String away = input.substring(8);
-    return away + " @ " + home;
+    throw InvalidInputException("");
   }
 }
 
@@ -35,9 +44,16 @@ String toAwayAtHomeString(String input, bool homeTeamIsFirst) {
 /// are found by using the Eastern and Western conference member variables of
 /// the series. In subsequent rounds, the subtrees are identified by finding
 /// the series where one of the teamIDs matches the parent's teamID.
+/// Throws [InvalidInputException] if not exactly 15 series in [PlayoffSeason]
 Graph generatePlayoffGraph(PlayoffSeason playoffSeason) {
-  // Async fetch both list of games and playoff bracket data
-  // Await the playoff bracket data since that is essential for the graph
+  // First ensure input is valid
+  int numberOfNodes = 0;
+  for (Round r in playoffSeason.rounds) {
+    numberOfNodes += r.seriesList.length;
+  }
+  if (numberOfNodes != 15) {
+    throw InvalidInputException("PlayoffSeason has $numberOfNodes != 15 nodes");
+  }
 
   // In the below code, we generate nodes for each playoff series
   // Stanley Cup Finals (1 series) ////////////////////
@@ -131,7 +147,7 @@ Graph generatePlayoffGraph(PlayoffSeason playoffSeason) {
   PlayoffNode rootEChild2Child2 =
       PlayoffNode(id: 15, series: seriesEast22, roundNum: 1);
 
-  // In the below code, we generate a new graph, storing in _graph
+  // Generate graph and draw edges between nodes to generate tree
   Graph graph = Graph();
   Paint paint = Paint()
     ..color = Colors.black

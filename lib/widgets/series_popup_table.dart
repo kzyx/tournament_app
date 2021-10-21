@@ -1,9 +1,11 @@
 /// This file contains classes and/or functions relating to the SeriesPopup
-/// table for a single game. It displays game information including
-/// header row (team logos), data rows (team stats), and a highlights button.
+/// table contained within a SeriesPopup. For a single game, it displays game
+/// information including header row (team logos), data rows (team stats),
+/// and a highlights button.
 import 'package:flutter/material.dart';
 import 'package:tournament_app/styles.dart';
 import 'package:tournament_app/widgets/video_player_popup.dart';
+import 'package:tournament_app/models/all.dart';
 
 /// Takes in [String] gameName and two [int]s homeTeamId, awayTeamId.
 /// Returns the header of the SeriesPopup table, which is a [TableRow] of the
@@ -35,7 +37,6 @@ TableRow generateSeriesPopupHeaderRow(
 /// Takes in [String]s statName, statTeamOne, statTeamTwo.
 /// Returns one row of data in the SeriesPopup of the form
 /// (statTeamOne, statName, statTeamTwo).
-///
 TableRow generateSeriesPopupDataRow(
     String statName, String statTeamOne, String statTeamTwo) {
   return TableRow(
@@ -55,7 +56,7 @@ TableRow generateSeriesPopupDataRow(
 
 /// Returns a button that, when clicked, opens a video player that plays
 /// the video at the provided [String] highlightsURL.
-ListTile generateSeriesPopupHighlightButton(
+Widget generateSeriesPopupHighlightButton(
     BuildContext context, String highlightsURL) {
   return ListTile(
       title: const Text("Watch highlights",
@@ -70,4 +71,63 @@ ListTile generateSeriesPopupHighlightButton(
           },
         );
       });
+}
+
+/// Takes arguments gameName [String] (e.g. "DAL @ VAN"), as well as [int]s
+/// for the home and away team IDs, and [TeamGameStat]s for each team.
+/// Returns [Table] containing the info about the given game, with away team's
+/// stats on the left and the home team's stats on the right.
+Table generateSeriesPopupTable(String gameName, int homeTeamId, int awayTeamId,
+    TeamGameStat awayTeamStat, TeamGameStat homeTeamStat) {
+  return Table(
+    columnWidths: const <int, TableColumnWidth>{
+      0: FlexColumnWidth(0.8),
+      1: FlexColumnWidth(1), // Middle text column is bigger
+      2: FlexColumnWidth(0.8),
+    },
+    defaultVerticalAlignment:
+    TableCellVerticalAlignment.middle,
+    children: [
+      generateSeriesPopupHeaderRow(
+          gameName,
+          homeTeamId,
+          awayTeamId),
+      generateSeriesPopupDataRow(
+          "Goals",
+          awayTeamStat.goalsScored.toString(),
+          homeTeamStat.goalsScored.toString()),
+      generateSeriesPopupDataRow(
+          "Shots taken",
+          awayTeamStat.goalsAttempted.toString(),
+          homeTeamStat.goalsAttempted.toString()),
+      generateSeriesPopupDataRow(
+          "Shots blocked",
+          awayTeamStat.blocked.toString(),
+          homeTeamStat.blocked.toString()),
+      generateSeriesPopupDataRow(
+          "PP Goals",
+          awayTeamStat.powerPlayGoals.toString(),
+          homeTeamStat.powerPlayGoals.toString()),
+      generateSeriesPopupDataRow(
+          "PP Percentage",
+          awayTeamStat.powerPlayPercentage.toString() + "%",
+          homeTeamStat.powerPlayPercentage.toString() + "%"),
+      generateSeriesPopupDataRow(
+          "Hits",
+          awayTeamStat.hits.toString(),
+          homeTeamStat.hits.toString()),
+      generateSeriesPopupDataRow(
+          "Penalty min",
+          awayTeamStat.penaltyMin.toString(),
+          homeTeamStat.penaltyMin.toString()),
+      generateSeriesPopupDataRow(
+          "Takeaways",
+          awayTeamStat.takeaways.toString(),
+          homeTeamStat.takeaways.toString()),
+      generateSeriesPopupDataRow(
+          "Giveaways",
+          awayTeamStat.giveaways.toString(),
+          homeTeamStat.giveaways.toString()),
+    ],
+  );
 }
